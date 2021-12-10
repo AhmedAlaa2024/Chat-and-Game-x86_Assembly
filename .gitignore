@@ -12,6 +12,13 @@ bin-release/
 *.air
 *.ipa
 *.apk
+*.EXE
+
+# Object and Config Files
+*.OBJ
+*.TD
+*.TR
+*.MAP
 
 # Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
 # should NOT be excluded as they contain compiler settings and other important
