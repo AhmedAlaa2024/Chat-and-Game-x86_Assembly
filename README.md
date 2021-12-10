@@ -6,7 +6,7 @@ This is the final project for introduction to microprocessor course. It's a soft
   - Mohamed Abdelhady: Implement the following commands as macros -> [DIV - MUL - IDIV - IMUL - FIRST SCREEN]
   - Mohamed Kamal: Implement the following commands as macros -> [SHR - SHL - SAR - ROR - RCL - RCR - ROL]
   - Mohamed Kotb: Implement the following commands as macros -> [MOV - NOP - CLC - STC - INC - DEC]
-  - Notes:
+  - Notes:<br>
             1. Input: One String Command.
             2. Assume the input command is valid.
             3. Push all registers you will use at the begining of the macro.
