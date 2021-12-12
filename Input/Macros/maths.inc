@@ -14,21 +14,23 @@
 ;ARITHMETIC_OPERATION_PREPROCESSING ENDM
 
 ;===========================================================================================
-; Function: _OPERATION_CLASSIFY                                                             |
+; Function: MATH_OPERATION_CLASSIFY                                                         |
 ; TESTED:   TRUE                                                                            |
 ; Input: <String:MSG> = The Command                                                         |
 ; Output: <boolean:OP_FLAG> = The flag which carry the command's id or 0xFF for NONE		|
 ; Description: Determine which operation is mentioned in the command. Then assign number to |
 ;			   the OP_FLAG. This number is the order of operation in the project document.	|
+;						[ADD - ADC - SUB - SBB - XOR - AND - OR]							|
+;						[ 0  -  1  -  2  -  3  -  9  -  A  -  B]							|
 ;===========================================================================================
-_OPERATION_CLASSIFY MACRO MSG, OP_FLAG
+MATH_OPERATION_CLASSIFY MACRO MSG, OP_FLAG
     LOCAL ADD_MATCH, ADC_MATCH, SUB_MATCH, SBB_MATCH, XOR_MATCH, AND_MATCH, OR_MATCH, RETURN
     
     PUSH SI
 	PUSH DI
 	PUSH CX
 
-	MOV OP_FLAG,0FFH ; SET Default that there is no matched operation.
+	MOV OP_FLAG,0FFH ; SET Default that there is no matched operation. [TO AN UNUSED LOCATION]
 
 	LEA SI,ADD_STR
 	LEA DI,MSG
@@ -109,8 +111,8 @@ _OPERATION_CLASSIFY MACRO MSG, OP_FLAG
 				MOV OP_FLAG,0BH
 				JMP RETURN
 
-	RETURN:
+	RETURN: ; To load the previous state of the main program
 				POP CX
 				POP DI
 				POP SI
-ENDM _OPERATION_CLASSIFY
+ENDM MATH_OPERATION_CLASSIFY

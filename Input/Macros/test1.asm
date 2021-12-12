@@ -11,7 +11,7 @@ MAIN PROC    FAR
 	     MOV DS,AX
              MOV ES,AX
 	;================================
-	     _OPERATION_CLASSIFY COMMAND1, OP_FLAG
+	     MATH_OPERATION_CLASSIFY COMMAND1, OP_FLAG
 	;================================
 	;Safely return to OS
 	     MOV AX, 4C00H
