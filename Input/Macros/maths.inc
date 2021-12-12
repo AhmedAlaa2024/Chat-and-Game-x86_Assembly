@@ -9,9 +9,9 @@
 ;               1. Classify the command, and assign the OP_CODE                             |
 ;               2. Determine the source, and destination, then assign them to SRC, DES.     |
 ;===========================================================================================
-ARITHMETIC_OPERATION_PREPROCESSING MACRO MSG, OP_CODE, SRC, DES
-	_OPERATION_CLASSIFY MSG, OP_CODE
-ARITHMETIC_OPERATION_PREPROCESSING ENDM
+;ARITHMETIC_OPERATION_PREPROCESSING MACRO MSG, OP_CODE, SRC, DES
+;	_OPERATION_CLASSIFY MSG, OP_CODE
+;ARITHMETIC_OPERATION_PREPROCESSING ENDM
 
 ;===========================================================================================
 ; Function: _OPERATION_CLASSIFY                                                             |

@@ -4,7 +4,7 @@ INCLUDE maths.inc
         .DATA
 	;DEFINE YOUR DATA HERE
 COMMAND1 DB  'ADD AX,BX'
-INCLUDE mathData.inc
+INCLUDE data.inc
         .CODE
 MAIN PROC    FAR
 	     MOV AX,@DATA
