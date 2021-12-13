@@ -1,8 +1,0 @@
-ADD_STR  DB  'ADD '
-ADC_STR  DB  'ADC '
-SUB_STR  DB  'SUB '
-SBB_STR  DB  'SBB '
-XOR_STR  DB  'XOR '
-AND_STR  DB  'AND '
-OR_STR   DB  'OR '
-OP_FLAG  DB  ?

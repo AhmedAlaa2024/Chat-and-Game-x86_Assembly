@@ -4,14 +4,14 @@ INCLUDE maths.inc
         .DATA
 	;DEFINE YOUR DATA HERE
 COMMAND1 DB  'ADD AX,BX'
-INCLUDE mathData.inc
+INCLUDE data.inc
         .CODE
 MAIN PROC    FAR
 	     MOV AX,@DATA
 	     MOV DS,AX
              MOV ES,AX
 	;================================
-	     _OPERATION_CLASSIFY COMMAND1, OP_FLAG
+	     MATH_OPERATION_CLASSIFY COMMAND1, OP_FLAG
 	;================================
 	;Safely return to OS
 	     MOV AX, 4C00H
