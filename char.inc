@@ -1,15 +1,17 @@
-;This File Contains Chracter Macros
+;This File Contains Chracter and String Macros
 
 ;=============================================
 ;              CHARACTER MACROS
 ;=============================================
 
+;=============================================================================
 ;Check if a character is a number (Only Valid for 8-bit input)
 ;INPUT:     CHAR, LABEL
 ;OUTPUT:    NONE
 ;Algorithm:
-;IF CHAR IN '0123456789' ==> JMP IS_DIGIT
-;ELSE RETURN
+;IF ('1' <= CHAR AND CHAR <= '9')
+;   GOTO LABEL
+;=============================================================================
 ISDIGIT MACRO CHAR, IS_DIGIT
     LOCAL NOT_DIGIT
     CMP CHAR, '0'
@@ -21,12 +23,15 @@ ISDIGIT MACRO CHAR, IS_DIGIT
     NOT_DIGIT:
 ENDM ISDIGIT
 
+;=============================================================================
 ;Check if a character is a HEXADECIMAL number (Only Valid for 8-bit input)
 ;INPUT:     CHAR, LABEL
 ;OUTPUT:    NONE
 ;Algorithm:
-;IF CHAR IN '0123456789ABCDEFabcdef' ==> JMP IS_HEX
-;ELSE RETURN
+;IF ('1' <= CHAR AND CHAR <= '9') OR ('A' <= CHAR AND CHAR <= 'F') 
+;OR ('a' <= CHAR AND CHAR <= 'f') 
+;   GOTO LABEL
+;=============================================================================
 ISXDIGIT MACRO CHAR, IS_HEX
     LOCAL NOT_HEX
     CMP CHAR, '0'
@@ -51,13 +56,14 @@ ISXDIGIT MACRO CHAR, IS_HEX
     NOT_HEX:
 ENDM ISXDIGIT
 
-;Check if a character is a Letter (Only Valid for 8-bit input)
+;=============================================================================
+;Check if a character is a letter (Only Valid for 8-bit input)
 ;INPUT:     CHAR, LABEL
 ;OUTPUT:    NONE
 ;Algorithm:
-;IF CHAR IN 'ABCDEFGHIJKLMNOPQRSTUVWXYZ
-;     OR IN 'abcdefghijklmnopqrstuvwxyz' ==> JMP IS_ALPHA
-;ELSE RETURN
+;IF ('A' <= CHAR AND CHAR <= 'Z') OR ('a' <= CHAR AND CHAR <= 'z')
+;   GOTO LABEL
+;=============================================================================
 ISALPHA MACRO CHAR, IS_ALPHA
     LOCAL NOT_ALPHA 
     CMP CHAR, 'A'
@@ -75,10 +81,85 @@ ISALPHA MACRO CHAR, IS_ALPHA
     NOT_ALPHA:
 ENDM ISALPHA
 
+;=============================================================================
+;Check if a character is an uppercase letter (Only Valid for 8-bit input)
+;INPUT:     CHAR, LABEL
+;OUTPUT:    NONE
+;Algorithm:
+;IF 'A' <= CHAR AND CHAR <= 'Z')
+;   GOTO LABEL
+;=============================================================================
+ISUPPER MACRO CHAR, IS_UPPER
+    LOCAL NOT_UPPER 
+    CMP CHAR, 'A'
+    JL NOT_UPPER
+
+    CMP CHAR, 'Z'
+    JLE IS_UPPER
+
+    NOT_UPPER:
+ENDM ISUPPER
+
+;=============================================================================
+;Check if a character is a lower case letter (Only Valid for 8-bit input)
+;INPUT:     CHAR, LABEL
+;OUTPUT:    NONE
+;Algorithm:
+;IF 'a' <= CHAR AND CHAR <= 'z'
+;   GOTO LABEL
+;=============================================================================
+ISLOWER MACRO CHAR, IS_LOWER
+    LOCAL NOT_LOWER 
+    CMP CHAR, 'a'
+    JL NOT_LOWER
+
+    CMP CHAR, 'z'
+    JLE IS_LOWER
+
+    NOT_LOWER:
+ENDM ISLOWER
+
+;=============================================================================
 ;Get integral value of character
 ;CHAR MUST be in '0123456789'
 ;ALGORITHM:
 ;CHAR = CHAR - '0'
-TO_INT MACRO CHAR
+;=============================================================================
+CHAR_TO_INT MACRO CHAR
     SUB CHAR, '0'
-ENDM TO_INT
+ENDM CHAR_TO_INT
+
+;=============================================
+;              STRING MACROS
+;=============================================
+
+;=============================================================================
+;Change each lowercase character in a string to an uppercase character
+;INPUT:     String (1-BYTE ARRAY), Null (CHAR)
+;OUTPUT:    Modified String
+;Algorithm:
+;si = 0
+;WHILE(String[si] != Null)
+;   IF 'a' <= String[si] AND String[SI] <= 'z'
+;       String[si] = String[si] - 0x20                                        
+;   si = si + 1                                                               
+;=============================================================================
+TOUPPER MACRO STR, NULL_TERMINATOR
+    LOCAL TO_UPPER, RETURN, LOOPNEXT, SKIP
+    MOV SI, 0
+
+    LOOPNEXT:
+    CMP STR[SI], NULL_TERMINATOR
+    JE RETURN
+
+    ISLOWER STR[SI], TO_UPPER
+    JMP SKIP
+    
+    TO_UPPER: SUB STR[SI], 20H 
+    SKIP:
+
+    INC SI
+    JMP LOOPNEXT
+
+    RETURN:
+ENDM TOUPPER

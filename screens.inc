@@ -7,43 +7,53 @@ STRT_PRESS_ENTER_PROMPT DB 'Press Enter key to continue','$'
 ;              Screen MACROS
 ;=============================================
 
+;=============================================================================
 ;Sets the video mode (3: TEXT MODE, 13: Graphics mode) 
 ;PARAMATER:     mode (1 Byte)
 ;REGISTERS CHANGED: AH  AL
+;=============================================================================
 SET_VIDEO MACRO MODE
     MOV AL, MODE
     MOV AH, 0
     INT 10H
 ENDM SET_VIDEO
 
+;=============================================================================
 ;GET a CHAR from STDIN (WITHOUT ECHO)
 ;OUTPUT:    AL (CHAR)
 ;REGISTERS CHANGED: AH  AL
+;=============================================================================
 GET_CHAR MACRO
     MOV AH, 08
     INT 21H
 ENDM GET_CHAR
 
+;=============================================================================
 ;Display a CHAR to STDOUT 
 ;PARAMATER:     CHAR
 ;REGISTERS CHANGED: AH  DL
+;=============================================================================
 DISPLAY_CHAR MACRO CHAR
     MOV DL, CHAR
     MOV AH, 02
     INT 21H
 ENDM DISPLAY_CHAR
 
+;=============================================================================
 ;Display a $ terminated string to STDOUT 
 ;PARAMATER:     MSG (1st byte of message)
 ;REGISTERS CHANGED: AH  DX
+;=============================================================================
 DISPLAY_MSG MACRO MSG
     MOV DX, OFFSET MSG
     MOV AH, 09
     INT 21H
 ENDM DISPLAY_MSG
 
+;=============================================================================
 ;Displays a new line in STDOUT
 ;REGISTERS CHANGED: AH  DL
+;=============================================================================
 DISPLAY_NEWLINE MACRO
     MOV AH, 02H
     
@@ -54,8 +64,10 @@ DISPLAY_NEWLINE MACRO
     INT 21H
 ENDM DISPLAY_NEWLINE
 
+;=============================================================================
 ;Removes Current Character in STDOUT
 ;REGISTERS CHANGED: AH  DL
+;=============================================================================
 DISPLAY_BACKSPACE MACRO
     MOV AH, 02H
 
@@ -73,12 +85,14 @@ ENDM DISPLAY_BACKSPACE
 ;              Start Screen
 ;=============================================
 
+;=============================================================================
 ;Gets Username from STDIN (With ECHO)
 ;First character must be a letter
 ;Min size = 1, Max size = Buff[0]
 ;Supports backspace
 ;Carriage return to confirm username
-;PARAMETERS:  USERNAME BUFFER
+;PARAMETERS:  USERNAME BUFFER (0: MaxSize, 1: CurrSize, >1: Username String)
+;=============================================================================
 GET_USERNAME MACRO USERNAME
     LOCAL GETFIRST, GETNEXT, DONEFIRST, BACKSPACE, RETURN
     MOV BX, 0000H       ;Current Input Size
@@ -95,6 +109,10 @@ GET_USERNAME MACRO USERNAME
     INC BL
     GETNEXT:
     GET_CHAR
+
+    CMP AL, 09D   ;Ignore TAB
+    JE GETNEXT 
+
     CMP AL, 13D   ;CARRIAGE RETURN
     JE RETURN
 
@@ -121,12 +139,14 @@ GET_USERNAME MACRO USERNAME
     MOV USERNAME[1], BL
 ENDM GET_USERNAME
 
+;=============================================================================
 ;Gets suggested from STDIN (With ECHO)
 ;No trailing zeros allowed
 ;Min size = 1, Max size = 9999
 ;Supports backspace
 ;Carriage return to confirm
 ;PARAMETERS:  POINTS (2-Bytes)
+;=============================================================================
 GET_POINTS MACRO POINTS
     LOCAL GETFIRST, GETNEXT, VALID, RETURN
     ;The number is stored in BX
@@ -145,7 +165,7 @@ GET_POINTS MACRO POINTS
     
     DONEFIRST:
     DISPLAY_CHAR AL
-    TO_INT AL
+    CHAR_TO_INT AL
     MOV BL, AL
     INC CL
     GETNEXT:
@@ -163,7 +183,7 @@ GET_POINTS MACRO POINTS
     JMP GETNEXT
     VALID:
     DISPLAY_CHAR AL
-    TO_INT AL
+    CHAR_TO_INT AL
 
     ;DECIMAL SHIFT LEFT WITH AL
     MOV AH, 0
