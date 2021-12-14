@@ -144,14 +144,12 @@ ENDM CHAR_TO_INT
 ;       String[si] = String[si] - 0x20                                        
 ;   si = si + 1                                                               
 ;=============================================================================
-TOUPPER MACRO STR, NULL_TERMINATOR
+TOUPPER MACRO STR, SIZE
     LOCAL TO_UPPER, RETURN, LOOPNEXT, SKIP
     MOV SI, 0
+    MOV CX, SIZE
 
     LOOPNEXT:
-    CMP STR[SI], NULL_TERMINATOR
-    JE RETURN
-
     ISLOWER STR[SI], TO_UPPER
     JMP SKIP
     
@@ -159,7 +157,7 @@ TOUPPER MACRO STR, NULL_TERMINATOR
     SKIP:
 
     INC SI
-    JMP LOOPNEXT
+    LOOP LOOPNEXT
 
     RETURN:
 ENDM TOUPPER

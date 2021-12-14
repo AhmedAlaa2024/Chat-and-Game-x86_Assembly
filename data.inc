@@ -1,23 +1,27 @@
+
+CMD_ARR LABEL BYTE
+MOV_STR  DB  'MOV$'
 ;=============================================
 ;         Arithmatic Operations Strings       |
 ;=============================================
-ADD_STR  DB  'ADD '
-ADC_STR  DB  'ADC '
-SUB_STR  DB  'SUB '
-SBB_STR  DB  'SBB '
-XOR_STR  DB  'XOR '
-AND_STR  DB  'AND '
-OR_STR   DB  'OR '
+ADD_STR  DB  'ADD$'
+ADC_STR  DB  'ADC$'
+SUB_STR  DB  'SUB$'
+SBB_STR  DB  'SBB$'
+XOR_STR  DB  'XOR$'
+AND_STR  DB  'AND$'
+OR_STR   DB  'OR$'
 ;=============================================
 ;         Bitwise Operations Strings          |
 ;=============================================
-SHR_STR DB 'SHR '
-SHL_STR DB 'SHL '
-SAR_STR DB 'SAR '
-ROR_STR DB 'ROR '
-RCL_STR DB 'RCL '
-RCR_STR DB 'RCR '
-ROL_STR DB 'ROL '
+SHR_STR DB 'SHR$'
+SHL_STR DB 'SHL$'
+SAR_STR DB 'SAR$'
+ROR_STR DB 'ROR$'
+RCL_STR DB 'RCL$'
+RCR_STR DB 'RCR$'
+ROL_STR DB 'ROL$'
+CMD_ARR_SIZE EQU $ - CMD_ARR
 ;=============================================
 ;              REGISTERS STRINGS              |
 ;=============================================
