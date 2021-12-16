@@ -9,8 +9,6 @@ PUBLIC BIRD_SPEED,BULLET_SPEED,POWERUPSCORE
 BIRD_SPEED     EQU  1000
 BULLET_SPEED   EQU  500
 POWERUPSCORE   DB    ?
-
-;======================================================================================================================================
  logoFront db 43, 3, 15, 212, 3, 86, 39, 4, 15, 40, 4, 103, 41, 4, 103, 42, 4, 78, 43, 4, 103, 212, 4, 64, 213, 4, 64, 214, 4, 64, 215, 4, 64, 216, 4, 87, 35, 5, 102, 36, 5, 103, 37, 5, 103, 38, 5, 103, 39, 5, 78, 40, 5, 78, 41, 5, 78, 42, 5, 78, 43, 5, 103, 44, 5, 15, 45, 5, 103, 46, 5, 78, 47, 5, 103, 208, 5, 87, 209, 5, 64, 210, 5, 64, 211, 5, 88, 212, 5, 64
     db 213, 5, 64, 214, 5, 64, 215, 5, 64, 216, 5, 64, 217, 5, 64, 218, 5, 64, 219, 5, 63, 220, 5, 63, 17, 6, 103, 18, 6, 103, 19, 6, 103, 20, 6, 103, 21, 6, 103, 22, 6, 103, 23, 6, 103, 24, 6, 103, 25, 6, 103, 26, 6, 103, 27, 6, 103, 28, 6, 103, 29, 6, 103, 30, 6, 103, 31, 6, 102, 34, 6, 103, 35, 6, 103, 36, 6, 78, 37, 6, 78, 38, 6, 103, 39, 6, 78, 40, 6, 103
     db 41, 6, 103, 42, 6, 103, 43, 6, 78, 44, 6, 78, 45, 6, 78, 46, 6, 78, 47, 6, 103, 208, 6, 87, 209, 6, 64, 210, 6, 12, 211, 6, 12, 212, 6, 12, 213, 6, 64, 214, 6, 64, 215, 6, 63, 216, 6, 64, 217, 6, 64, 218, 6, 64, 219, 6, 12, 220, 6, 64, 221, 6, 63, 224, 6, 87, 225, 6, 63, 226, 6, 64, 227, 6, 64, 228, 6, 64, 229, 6, 64, 230, 6, 64, 231, 6, 64, 232, 6, 64
@@ -436,98 +434,8 @@ POWERUPSCORE   DB    ?
     db 79, 101, 77, 80, 101, 77, 81, 101, 77, 82, 101, 101, 88, 101, 77, 89, 101, 77, 90, 101, 77, 91, 101, 77, 92, 101, 77, 93, 101, 15, 104, 101, 101, 105, 101, 78, 106, 101, 78, 107, 101, 78, 108, 101, 78, 109, 101, 78, 110, 101, 30, 131, 101, 88, 132, 101, 63, 133, 101, 63, 134, 101, 63, 135, 101, 63, 136, 101, 63, 137, 101, 63, 138, 101, 63, 150, 101, 88, 151, 101, 63, 152, 101, 63, 153, 101, 63, 154, 101, 63
     db 164, 101, 63, 165, 101, 64, 166, 101, 64, 167, 101, 64, 168, 101, 64, 169, 101, 64, 170, 101, 64, 171, 101, 87, 180, 101, 63, 181, 101, 63, 182, 101, 63, 183, 101, 63, 184, 101, 88, 200, 101, 15, 201, 101, 64, 202, 101, 12, 203, 101, 64, 204, 101, 12, 205, 101, 64, 206, 101, 63, 220, 101, 63, 221, 101, 63, 222, 101, 63, 223, 101, 63, 224, 101, 88, 234, 101, 63, 235, 101, 63, 236, 101, 63, 237, 101, 63, 238, 101, 63
     db 239, 101, 63, 240, 101, 63, 241, 101, 63, 242, 101, 63, 243, 101, 88
-    logoFrontSize dw 105
-;======================================================================================================================================
- .CODE
- drawDynamicPixel macro column,  row,  color,  Y_t,  X_t                 ;x,  y,  color...the last two parameters are the dynamic position of the pixel. Assumes that mov ah,  0ch was priorly done.
-            xor ch, ch                                                      ;Because all of our images are db arrays.                                                                             
-            xor dh, dh
-            mov dl,  row
-            mov cl,  column
-            mov al,  color
-            ;Dynamics:
-            add dx,  Y_t                                                    ;X_t and Y_t correspond to the time changing position.
-            add cx,  X_t
-            int 10h
-endm drawDynamicPixel
-
-Logo macro y,  x 
-    local whileLogo                                                        ;Loops on the logo and draws it pixel by pixel
-        mov ah, 0ch
-        mov bx,  offset logoFront
-    whileLogo:
-       drawDynamicPixel [bx], [bx+1], [bx+2],  y,  x
-       add bx, 3
-       cmp bx, offset logoFrontSize                                       ;Time to end the loop whenever the offset is outside the image.
-    JNE whileLogo
-endm Logo
-;=========================================================================================================================================       
-DRAW_BIRD  MACRO  X, Y
-        LOCAL BACK
-        PUSH AX
-        PUSH BX
-        PUSH CX
-        PUSH DX
-
-        MOV CX,X
-        MOV DX,Y
-
-        MOV AL,0EH
-        MOV AH,0CH
-
-        BACK:
-                
-
-        POP DX
-        POP CX
-        POP BX
-        POP AX
-ENDM DRAW_BIRD
-
-DRAW_PLAYER MACRO X , Y
-LOCAL DRAWSHOOTER, RIGHT,LEFT
-        PUSH AX
-        PUSH BX
-        PUSH CX
-        PUSH DX
-        PUSH SI
-        PUSH DI
-        MOV BH,0
-        MOV CX,X
-        MOV DX,Y
-        MOV AL,2
-        MOV AH,0ch
-        MOV SI,0
-        MOV DI,25
-DRAWSHOOTER:
-        CMP SI,25
-        JE RIGHT 
-        INC SI
-        ADD DX,SI
-        INT 10H
-        SUB DX,SI
-        JMP LEFT
-RIGHT:  
-        DEC DI
-        ADD DX,DI
-        INT 10H
-        SUB DX,DI
-LEFT:        
-        INT 10H
-        INC CX
-        CMP DI,0
-        JNE DRAWSHOOTER
-        POP DI
-        POP SI
-        POP DX
-        POP CX
-        POP BX
-        POP AX
-ENDM DRAW_PLAYER 
-; DRAW_BULLET MACRO
-
-; DRAW_BULLET ENDM
-
+    logoFrontSize dw 105 
+        .CODE
 MAIN    PROC    FAR
         MOV AX,@DATA
         MOV DS,AX
@@ -536,29 +444,8 @@ MAIN    PROC    FAR
         MOV BX,100h
         INT 10H
         ;==================
-        ;CALL BIRDGAME
-        ;==================
-        Logo 0 0
-        Logo 0 250
-        Logo 0 500
-        
-        Logo 100 0
-        Logo 100 250
-        Logo 100 500
-
-        Logo 200 0
-        Logo 200 0
-        Logo 200 500
-        ;==================
-        ;DRAW_BIRD 50 50
-        DRAW_PLAYER 50 50
+        CALL BIRDGAME
         ;==================
         RET
 MAIN    ENDP
         END      MAIN   
-
-BIRDGAME PROC 
-    
-    RET
-BIRDGAME ENDP
-END
