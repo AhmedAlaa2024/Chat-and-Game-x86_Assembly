@@ -13,9 +13,13 @@ STRT_PRESS_ENTER_PROMPT DB 'Press Enter key to continue','$'
 ;REGISTERS CHANGED: AH  AL
 ;=============================================================================
 SET_VIDEO MACRO MODE
-    MOV AL, MODE
-    MOV AH, 0
+    PUSH AX
+    PUSH BX
+    MOV AX,4F02h
+    MOV BX,100h
     INT 10H
+    POP BX
+    POP AX
 ENDM SET_VIDEO
 
 ;=============================================================================
