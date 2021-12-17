@@ -90,6 +90,7 @@ CMD_OPERANDS_SIZE EQU $ - CMD_OPERANDS_ARR
 ;=============================================
 ;              REGISTERS STRINGS              |
 ;=============================================
+REG_STR_ARR LABEL BYTE
 AX_STR DB 'AX'
 AL_STR DB 'AL'
 AH_STR DB 'AH'
@@ -106,16 +107,13 @@ SI_STR DB 'SI'
 DI_STR DB 'DI'
 BP_STR DB 'BP'
 SP_STR DB 'SP'
-;=============================================
-;              LOCAL-PLAYER DATA              |
-;=============================================
-
-;=============================================
-;             NETWORK-PLAYER DATA             |
-;=============================================
-
+REG_STR_ARR_SIZE EQU $ - REG_STR_ARR
 ;=============================================
 ;             Miscellaneous Data              |
 ;=============================================
 CMD_FLAG  DB 0
 OP_FLAGS  DB 0
+OP1_PROPERTY DB ?
+OP1_LOCATION DW ?
+OP2_PROPERTY DB ?
+OP2_LOCATION DW ?

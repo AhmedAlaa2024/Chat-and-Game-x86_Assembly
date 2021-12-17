@@ -24,12 +24,12 @@ ISDIGIT MACRO CHAR, IS_DIGIT
 ENDM ISDIGIT
 
 ;=============================================================================
-;Check if a character is a HEXADECIMAL number (Only Valid for 8-bit input)
+;Check if a character is an uppercase 
+;HEXADECIMAL number (Only Valid for 8-bit input)
 ;INPUT:     CHAR, LABEL
 ;OUTPUT:    NONE
 ;Algorithm:
 ;IF ('1' <= CHAR AND CHAR <= '9') OR ('A' <= CHAR AND CHAR <= 'F') 
-;OR ('a' <= CHAR AND CHAR <= 'f') 
 ;   GOTO LABEL
 ;=============================================================================
 ISXDIGIT MACRO CHAR, IS_HEX
@@ -45,13 +45,6 @@ ISXDIGIT MACRO CHAR, IS_HEX
 
     CMP CHAR, 'F'
     JLE IS_HEX
-
-    CMP CHAR, 'a'
-    JL NOT_HEX
-
-    CMP CHAR, 'f'
-    JLE IS_HEX
-
 
     NOT_HEX:
 ENDM ISXDIGIT
