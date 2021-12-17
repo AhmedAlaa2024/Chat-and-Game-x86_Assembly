@@ -9,7 +9,8 @@ PUBLIC BIRD_SPEED,BULLET_SPEED,POWERUPSCORE
 BIRD_SPEED     EQU  1000
 BULLET_SPEED   EQU  500
 POWERUPSCORE   DB    ?
-
+P1_X DW 0
+P1_Y DW 0
 ;======================================================================================================================================
  logoFront db 43, 3, 15, 212, 3, 86, 39, 4, 15, 40, 4, 103, 41, 4, 103, 42, 4, 78, 43, 4, 103, 212, 4, 64, 213, 4, 64, 214, 4, 64, 215, 4, 64, 216, 4, 87, 35, 5, 102, 36, 5, 103, 37, 5, 103, 38, 5, 103, 39, 5, 78, 40, 5, 78, 41, 5, 78, 42, 5, 78, 43, 5, 103, 44, 5, 15, 45, 5, 103, 46, 5, 78, 47, 5, 103, 208, 5, 87, 209, 5, 64, 210, 5, 64, 211, 5, 88, 212, 5, 64
     db 213, 5, 64, 214, 5, 64, 215, 5, 64, 216, 5, 64, 217, 5, 64, 218, 5, 64, 219, 5, 63, 220, 5, 63, 17, 6, 103, 18, 6, 103, 19, 6, 103, 20, 6, 103, 21, 6, 103, 22, 6, 103, 23, 6, 103, 24, 6, 103, 25, 6, 103, 26, 6, 103, 27, 6, 103, 28, 6, 103, 29, 6, 103, 30, 6, 103, 31, 6, 102, 34, 6, 103, 35, 6, 103, 36, 6, 78, 37, 6, 78, 38, 6, 103, 39, 6, 78, 40, 6, 103
@@ -437,8 +438,64 @@ POWERUPSCORE   DB    ?
     db 164, 101, 63, 165, 101, 64, 166, 101, 64, 167, 101, 64, 168, 101, 64, 169, 101, 64, 170, 101, 64, 171, 101, 87, 180, 101, 63, 181, 101, 63, 182, 101, 63, 183, 101, 63, 184, 101, 88, 200, 101, 15, 201, 101, 64, 202, 101, 12, 203, 101, 64, 204, 101, 12, 205, 101, 64, 206, 101, 63, 220, 101, 63, 221, 101, 63, 222, 101, 63, 223, 101, 63, 224, 101, 88, 234, 101, 63, 235, 101, 63, 236, 101, 63, 237, 101, 63, 238, 101, 63
     db 239, 101, 63, 240, 101, 63, 241, 101, 63, 242, 101, 63, 243, 101, 88
     logoFrontSize dw 105
+    shooter db 11,1,39,12,1,39,13,1,39,10,2,40,11,2,39,12,2,39,13,2,39,14,2,40,10,3,39,11,3,39,12,3,39,13,3,39,14,3,39,9,4,39,10,4,39,11,4,39,12,4,39,13,4,39,14,4,39,15,4,39,9,5,39,10,5,39,11,5,39,12,5,39,13,5,39,14,5,39,15,5,39,8,6,39,9,6,39,10,6,39
+db 11,6,39,12,6,39,13,6,39,14,6,39,15,6,39,16,6,39,7,7,39,8,7,39,9,7,39,10,7,39,11,7,39,12,7,39,13,7,39,14,7,39,15,7,39,16,7,39,17,7,39,7,8,39,8,8,39,9,8,39,10,8,39,11,8,39,12,8,39,13,8,39,14,8,39,15,8,39,16,8,39,17,8,39,6,9,39,7,9,39
+db 8,9,39,9,9,39,10,9,39,11,9,39,12,9,39,13,9,39,14,9,39,15,9,39,16,9,39,17,9,39,18,9,39,6,10,39,7,10,39,8,10,39,9,10,39,10,10,39,11,10,39,12,10,39,13,10,39,14,10,39,15,10,39,16,10,39,17,10,39,18,10,39,19,10,39,5,11,39,6,11,39,7,11,39,8,11,39,9,11,39
+db 10,11,39,11,11,39,12,11,39,13,11,39,14,11,39,15,11,39,16,11,39,17,11,39,18,11,39,19,11,39,4,12,39,5,12,39,6,12,39,7,12,39,8,12,39,9,12,39,10,12,39,11,12,39,12,12,39,13,12,39,14,12,39,15,12,39,16,12,39,17,12,39,18,12,39,19,12,39,20,12,39,4,13,39,5,13,39,6,13,39
+db 7,13,39,8,13,39,9,13,39,10,13,39,11,13,39,12,13,39,13,13,39,14,13,39,15,13,39,16,13,39,17,13,39,18,13,39,19,13,39,20,13,39,3,14,39,4,14,39,5,14,39,6,14,39,7,14,39,8,14,39,9,14,39,10,14,39,11,14,39,12,14,39,13,14,39,14,14,39,15,14,39,16,14,39,17,14,39,18,14,39
+db 19,14,39,20,14,39,21,14,39,2,15,40,3,15,39,4,15,39,5,15,39,6,15,39,7,15,39,8,15,39,9,15,39,10,15,39,11,15,39,12,15,39,13,15,39,14,15,39,15,15,39,16,15,39,17,15,39,18,15,39,19,15,39,20,15,39,21,15,39,22,15,39,2,16,39,3,16,39,4,16,39,5,16,39,6,16,39,7,16,39
+db 8,16,39,9,16,39,10,16,39,11,16,39,12,16,39,13,16,39,14,16,39,15,16,39,16,16,39,17,16,39,18,16,39,19,16,39,20,16,39,21,16,39,22,16,39,1,17,39,2,17,39,3,17,39,4,17,39,5,17,39,6,17,39,7,17,39,8,17,39,9,17,39,10,17,39,11,17,39,12,17,39,13,17,39,14,17,39,15,17,39
+db 16,17,39,17,17,39,18,17,39,19,17,39,20,17,39,21,17,39,22,17,39,23,17,39,1,18,39,2,18,39,3,18,39,4,18,39,5,18,39,6,18,39,7,18,39,8,18,39,9,18,39,10,18,39,11,18,39,12,18,39,13,18,39,14,18,39,15,18,39,16,18,39,17,18,39,18,18,39,19,18,39,20,18,39,21,18,39,22,18,39
+db 23,18,39,0,19,39,1,19,39,2,19,39,3,19,39,4,19,39,5,19,39,6,19,39,7,19,39,8,19,39,9,19,39,10,19,39,11,19,39,12,19,39,13,19,39,14,19,39,15,19,39,16,19,39,17,19,39,18,19,39,19,19,39,20,19,39,21,19,39,22,19,39,23,19,39,24,19,39,0,20,39,1,20,39,2,20,39,3,20,39
+db 4,20,39,5,20,39,6,20,39,7,20,39,8,20,39,9,20,39,10,20,39,11,20,39,12,20,39,13,20,39,14,20,39,15,20,39,16,20,39,17,20,39,18,20,39,19,20,39,20,20,39,21,20,39,22,20,39,23,20,39,24,20,39,0,21,39,1,21,39,2,21,39,3,21,39,4,21,39,5,21,39,6,21,39,7,21,39,8,21,39
+db 9,21,39,10,21,39,11,21,39,12,21,39,13,21,39,14,21,39,15,21,39,16,21,39,17,21,39,18,21,39,19,21,39,20,21,39,21,21,39,22,21,39,23,21,39,24,21,39,0,22,39,1,22,39,2,22,39,3,22,39,4,22,39,5,22,39,6,22,39,7,22,39,8,22,39,9,22,39,10,22,39,11,22,39,12,22,39,13,22,39
+db 14,22,39,15,22,39,16,22,39,17,22,39,18,22,39,19,22,39,20,22,39,21,22,39,22,22,39,23,22,39,24,22,39,0,23,39,1,23,39,2,23,39,3,23,39,4,23,39,5,23,39,6,23,39,7,23,39,8,23,39,9,23,39,10,23,39,11,23,39,12,23,39,13,23,39,14,23,39,15,23,39,16,23,39,17,23,39,18,23,39
+db 19,23,39,20,23,39,21,23,39,22,23,39,23,23,39,24,23,39,0,24,39,1,24,39,2,24,39,3,24,39,4,24,39,5,24,39,6,24,39,7,24,39,8,24,39,9,24,39,10,24,39,11,24,39,12,24,39,13,24,39,14,24,39,15,24,39,16,24,39,17,24,39,18,24,39,19,24,39,20,24,39,21,24,39,22,24,39,23,24,39
+db 24,24,39
+shooterSize dw 25 
+        
 ;======================================================================================================================================
  .CODE
+ ;Draw an entire block this is from hossam's notebook
+DRAWBLOCK MACRO imgH,imgW,img,X,Y
+        LOCAL  ENDING,Start,Drawit
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+               MOV CX,imgW
+               ADD CX,X  	;set the width (X) up to image width (based on image resolution)
+               MOV DX,Y 
+	       ADD DX,imgH 	;set the hieght (Y) up to image height (based on image resolution)
+	       mov DI, offset img  ; to iterate over the pixels
+	       jmp Start    	;Avoid drawing before the calculations
+	Drawit:
+	       MOV AH,0Ch   	;set the configuration to writing a pixel
+               mov al, [DI]     ; color of the current coordinates
+	       MOV BH,00h   	;set the page number
+	       INT 10h      	;execute the configuration
+	Start: 
+	       inc DI
+	       DEC Cx       	;  loop iteration in x direction
+               CMP CX,X
+	       JNE Drawit      	;  check if we can draw c urrent x and y and excape the y iteration
+	       MOV CX,imgW
+               ADD CX,X  	;  if loop iteration in y direction, then x should start over so that we sweep the grid
+	       DEC DX       	;  loop iteration in y direction
+               CMP DX,Y
+	       JZ  ENDING   	;  both x and y reached 00 so end program
+		   Jmp Drawit
+
+	ENDING:
+        
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+ENDM DRAWBLOCK
+ ;this is from essam's notebook
  drawDynamicPixel macro column,  row,  color,  Y_t,  X_t                 ;x,  y,  color...the last two parameters are the dynamic position of the pixel. Assumes that mov ah,  0ch was priorly done.
             xor ch, ch                                                      ;Because all of our images are db arrays.                                                                             
             xor dh, dh
@@ -484,49 +541,71 @@ DRAW_BIRD  MACRO  X, Y
         POP AX
 ENDM DRAW_BIRD
 
-DRAW_PLAYER MACRO X , Y
-LOCAL DRAWSHOOTER, RIGHT,LEFT
-        PUSH AX
-        PUSH BX
-        PUSH CX
-        PUSH DX
-        PUSH SI
-        PUSH DI
-        MOV BH,0
-        MOV CX,X
-        MOV DX,Y
-        MOV AL,2
-        MOV AH,0ch
-        MOV SI,0
-        MOV DI,25
-DRAWSHOOTER:
-        CMP SI,25
-        JE RIGHT 
-        INC SI
-        ADD DX,SI
-        INT 10H
-        SUB DX,SI
-        JMP LEFT
-RIGHT:  
-        DEC DI
-        ADD DX,DI
-        INT 10H
-        SUB DX,DI
-LEFT:        
-        INT 10H
-        INC CX
-        CMP DI,0
-        JNE DRAWSHOOTER
-        POP DI
-        POP SI
-        POP DX
-        POP CX
-        POP BX
-        POP AX
+DRAW_PLAYER MACRO X , Y ,KEY
+        LOCAL ISRIGHT,NOCHANGE,while1,while2
+        CMP KEY,75 ;LEFT
+        JNE ISRIGHT
+        mov ah,0;CONSUME BUFFER
+        int 16h
+        SUB X,10 
+                                                     ;Loops on the logo and draws it pixel by pixel
+        
+        Logo 0 0
+        mov ah, 0ch
+        mov bx,  offset shooter
+        while1:
+        drawDynamicPixel [bx], [bx+1], [bx+2],  y,  x
+        add bx, 3
+        cmp bx, offset shooterSize                                      ;Time to end the loop whenever the offset is outside the image.
+        JNE while1         
+ISRIGHT:
+        CMP KEY,77 ;RIGHT
+        JNE NOCHANGE
+        mov ah,0;CONSUME BUFFER
+        int 16h
+        ADD X,10
+        DRAW_BACKGROUND
+        Logo 0 0
+        mov ah, 0ch
+        mov bx,  offset shooter
+        while2:
+        drawDynamicPixel [bx], [bx+1], [bx+2],  y,  x
+        add bx, 3
+        cmp bx, offset shooterSize                                      ;Time to end the loop whenever the offset is outside the image.
+        JNE while2         
+NOCHANGE:
+    
 ENDM DRAW_PLAYER 
 ; DRAW_BULLET MACRO
 
 ; DRAW_BULLET ENDM
+
+DRAW_BACKGROUND MACRO
+        LOCAL OUTER,INNER
+        PUSH CX
+        PUSH DX
+        PUSH BX
+        PUSH AX
+        MOV DX,0
+        MOV AL,0
+        MOV AH,0CH
+OUTER:
+        MOV CX,0
+INNER:
+        INT 10h
+        INC CX
+        CMP CX,640
+        JNE INNER
+        INC DX
+        CMP DX,400
+        JNE OUTER
+
+
+        POP AX
+        POP BX
+        POP DX
+        POP CX
+ENDM DRAW_BACKGROUND        
 
 MAIN    PROC    FAR
         MOV AX,@DATA
@@ -539,19 +618,28 @@ MAIN    PROC    FAR
         ;CALL BIRDGAME
         ;==================
         Logo 0 0
-        Logo 0 250
-        Logo 0 500
+        ;DRAWBLOCK shooterH shooterW shooter P1_X P1_Y
+        ; Logo 0 250
+        ; Logo 0 500
         
-        Logo 100 0
-        Logo 100 250
-        Logo 100 500
+        ; Logo 100 0
+        ; Logo 100 250
+        ; Logo 100 500
 
-        Logo 200 0
-        Logo 200 0
-        Logo 200 500
+        ; Logo 200 0
+        ; Logo 200 0
+        ; Logo 200 500
         ;==================
         ;DRAW_BIRD 50 50
-        DRAW_PLAYER 50 50
+        ;DRAW_PLAYER 50 50
+
+MAINLOOP:
+        mov ah,1
+        int 16h
+
+        DRAW_PLAYER P1_X P1_Y AH
+
+        JMP MAINLOOP
         ;==================
         RET
 MAIN    ENDP
