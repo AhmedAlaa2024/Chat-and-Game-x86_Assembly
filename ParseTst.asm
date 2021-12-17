@@ -2,7 +2,7 @@
 .STACK 64
 .DATA
 
-TestString DB '  rol Ax,   F5a$   '
+TestString DB '  IMUL Ax,   F5a$   '
 TestRes    DB 17 dup (?)
 
 include data.inc
@@ -29,7 +29,10 @@ MAIN PROC FAR
     ;===========================
     ;       Test PARSE_CMD
     ;===========================
-    PARSE_CMD TestRes, CMD_ARR, CMD_ARR_SIZE
+    PARSE_CMD TestRes, CMD_ARR, CMD_ARR_SIZE, CMD_FLAG
+
+    GET_CMD_OPERANDS CMD_OPERANDS_ARR, CMD_FLAG, OP_FLAGS
+    
 
     ;Safely return to OS
     MOV AX, 4C00H
