@@ -1,5 +1,4 @@
-EXTRN BIRDGAME:NEAR
-PUBLIC BIRD_SPEED,BULLET_SPEED,POWERUPSCORE 
+
         .MODEL SMALL
         .STACK 64 
 ;==========================================
@@ -9,7 +8,7 @@ PUBLIC BIRD_SPEED,BULLET_SPEED,POWERUPSCORE
 BIRD_SPEED     EQU  1000
 BULLET_SPEED   EQU  500
 POWERUPSCORE   DB    ?
-P1_X DW 0
+P1_X DW 100
 P1_Y DW 300
 ;======================================================================================================================================
 shooterW equ 25
@@ -30,30 +29,60 @@ shooter DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 3
  DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 29, 3, 30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31 
  DB 31, 31, 98, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 29, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31 
  DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31
+ shooterBackgroundX equ 25
+shooterBackgroundY equ 25
+shooterBackground DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31 
+ DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 98, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 98, 31, 31, 98, 3, 3, 3 
+ DB 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 98, 31, 31, 31, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 
+ DB 3, 3, 3, 31, 31, 31, 31, 98, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 29, 31, 31, 31, 31, 31, 98, 3, 3, 3, 3, 3, 3 
+ DB 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 98, 31, 31, 31, 31, 31, 31, 29, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 30, 31, 31, 31 
+ DB 31, 31, 31, 31, 98, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 98, 31, 31, 31, 31, 31, 31, 31, 31, 30, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3 
+ DB 3, 3, 3, 3, 3, 30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 98, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 98, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31 
+ DB 31, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 29, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 29, 31 
+ DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 98, 3, 3, 3, 3, 3, 3, 3, 3, 3, 98, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 29, 3, 3 
+ DB 3, 3, 3, 3, 3, 3, 3, 30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 98, 3, 3, 3, 3, 3, 3, 3, 98, 31, 31, 31, 31, 31, 31, 31, 31 
+ DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 3, 3, 3, 3, 3, 3, 3, 30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 98, 3, 3, 3, 3, 3 
+ DB 98, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 3, 3, 3, 3, 3, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31 
+ DB 31, 31, 31, 31, 31, 29, 3, 3, 3, 29, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 98, 3, 98, 31, 31, 31, 31, 31, 31 
+ DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 29, 3, 30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31 
+ DB 31, 31, 98, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 29, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31 
+ DB 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31
         
 ;======================================================================================================================================
  .CODE
+
+;======================================================================================================================================
+;this macro draws a moving object and then saves the previous background to a the same dimansion img
+;======================================================================================================================================
  ;Draw an entire block this is from hossam's notebook
-DRAWBLOCK MACRO imgH,imgW,img,X,Y
+ ;also saves its background in history
+DRAW_MOIVNG_OBJECT MACRO imgH,imgW,img,imgB,X,Y ;imgB and img are the same width and hight
         LOCAL  ENDING,Start,Drawit
         PUSH CX
         PUSH DX
         PUSH DI
+        PUSH SI
         PUSH BX
         PUSH AX
-            MOV CX,imgW
-            ADD CX,X  	;set the width (X) up to image width (based on image resolution)
-               MOV DX,Y 
+                MOV CX,imgW
+                ADD CX,X  	;set the width (X) up to image width (based on image resolution)
+                MOV DX,Y 
 	        ADD DX,imgH 	;set the hieght (Y) up to image height (based on image resolution)
 	        mov DI, offset img  ; to iterate over the pixels
+                MOV SI, offset imgB ;the background img to store
+                MOV BH,00h   	;set the page number
 	        jmp Start    	;Avoid drawing before the calculations
 	Drawit:
+                ;save before pixel
+                MOV AH,0Dh
+                INT 10h
+                MOV [SI],AL
 	        MOV AH,0Ch   	;set the configuration to writing a pixel
-            mov al, [DI]    ; color of the current coordinates
-	        MOV BH,00h   	;set the page number
+                mov al, [DI]    ; color of the current coordinates
 	        INT 10h      	;execute the configuration
 	Start: 
 	        inc DI
+                INC SI
 	        DEC Cx       	;  loop iteration in x direction
             CMP CX,X
 	        JNE Drawit      ;  check if we can draw c urrent x and y and excape the y iteration
@@ -68,11 +97,12 @@ DRAWBLOCK MACRO imgH,imgW,img,X,Y
         
         POP AX
         POP BX
+        POP SI
         POP DI
         POP DX
         POP CX
-ENDM DRAWBLOCK
- 
+ENDM DRAW_MOIVNG_OBJECT
+
 ;=========================================================================================================================================       
 DRAW_BIRD  MACRO  X, Y
         LOCAL BACK
@@ -95,27 +125,47 @@ DRAW_BIRD  MACRO  X, Y
         POP BX
         POP AX
 ENDM DRAW_BIRD
-;=============================================
-;TODO: WE SHOULD RECOLOR THE PREVIOUS LOCATION
-;=============================================
+CONSUMEBUFFER MACRO 
+        PUSH AX
+        mov ah,0;CONSUME BUFFER
+        int 16h      
+        POP AX
+ENDM CONSUMEBUFFER
+;========================================================================
+;This macro checks the buttons and take a certian action correspondingly
+;========================================================================
 DRAW_PLAYER MACRO X , Y ,KEY
-        LOCAL ISRIGHT,NOCHANGE,DRAW
+        LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
         CMP KEY,75 ;LEFT
         JNE ISRIGHT
-        mov ah,0;CONSUME BUFFER
-        int 16h
+        CONSUMEBUFFER
+        CALL DRAW_PLAYER_BACKGROUND
         SUB X,10
         JMP DRAW        
 ISRIGHT:
         CMP KEY,77 ;RIGHT
+        JNE ISUP
+        CONSUMEBUFFER
+        CALL DRAW_PLAYER_BACKGROUND
+        ADD X,10
+        JMP DRAW  
+ISUP:
+        CMP KEY,72 ;UP
+        JNE ISDOWN
+        CONSUMEBUFFER
+        CALL DRAW_PLAYER_BACKGROUND
+        SUB Y,10 
+        JMP DRAW 
+ISDOWN:
+        CMP KEY,80 ;DOWN
         JNE NOCHANGE
-        mov ah,0;CONSUME BUFFER
-        int 16h
-        ADD X,10 
-DRAW:
-        DRAWBLOCK shooterH shooterW shooter P1_X P1_Y      
+        CONSUMEBUFFER
+        CALL DRAW_PLAYER_BACKGROUND
+        ADD Y,10 
+DRAW:     
+        DRAW_MOIVNG_OBJECT shooterH shooterW shooter shooterBackground P1_X P1_Y      
 NOCHANGE:
-    
+
 ENDM DRAW_PLAYER 
 ; DRAW_BULLET MACRO
 
@@ -159,7 +209,7 @@ MAIN    PROC    FAR
         ;CALL BIRDGAME
         ;==================
         DRAW_BACKGROUND
-        DRAWBLOCK shooterH shooterW shooter P1_X P1_Y
+        DRAW_MOIVNG_OBJECT shooterH shooterW shooter shooterBackground P1_X P1_Y
 
         
         ;==================
@@ -169,17 +219,58 @@ MAIN    PROC    FAR
 MAINLOOP:
         mov ah,1
         int 16h
-
         DRAW_PLAYER P1_X P1_Y AH
 
         JMP MAINLOOP
         ;==================
         RET
 MAIN    ENDP
-        END      MAIN   
 
-BIRDGAME PROC 
+; BIRDGAME PROC 
     
-    RET
-BIRDGAME ENDP
-END
+;     RET
+; BIRDGAME ENDP
+
+;======================================================================================================================================
+; Draw the previos background of the shooter
+;======================================================================================================================================
+
+DRAW_PLAYER_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                MOV CX,shooterW
+                ADD CX,P1_X  	;set the width (X) up to image width (based on image resolution)
+                MOV DX,P1_Y 
+	        ADD DX,shooterH 	;set the hieght (Y) up to image height (based on image resolution)
+	        mov DI, offset shooterBackground  ; to iterate over the pixels
+                MOV BH,00h   	;set the page number
+	        jmp STARTING    	;Avoid drawing before the calculations
+	DRAWING:
+	        MOV AH,0Ch   	;set the configuration to writing a pixel
+                mov al, [DI]    ; color of the current coordinates
+	        INT 10h      	;execute the configuration
+	STARTING: 
+	        inc DI
+	        DEC Cx       	;  loop iteration in x direction
+            CMP CX,P1_X
+	        JNE DRAWING      ;  check if we can draw c urrent x and y and excape the y iteration
+	        MOV CX,shooterW
+            ADD CX,P1_X  	    ;if loop iteration in y direction, then x should start over so that we sweep the grid
+	        DEC DX       	;  loop iteration in y direction
+            CMP DX,P1_Y
+	        JZ  STOP   	;  both x and y reached 00 so end program
+		    Jmp DRAWING
+
+	STOP:       
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_PLAYER_BACKGROUND ENDP
+      
+END      MAIN   
