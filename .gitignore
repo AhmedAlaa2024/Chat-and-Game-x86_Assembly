@@ -13,6 +13,8 @@ bin-release/
 *.ipa
 *.apk
 *.EXE
+*.OVL
+*.TDH
 
 # Object and Config Files
 *.OBJ

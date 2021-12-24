@@ -24,6 +24,8 @@ P1_BP DW 0
 P1_SP DW 0
 
 P1_MEM DB 16 dup(0)
+
+P1_IMMED DW 0
 ;=============================================
 ;             NETWORK-PLAYER DATA             |
 ;=============================================
@@ -50,3 +52,5 @@ P2_BP DW 0
 P2_SP DW 0
 
 P2_MEM DB 16 dup(0)
+
+P2_IMMED DW 0

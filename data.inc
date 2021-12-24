@@ -89,31 +89,46 @@ STC_OPS  DB  00000000B
 CMD_OPERANDS_SIZE EQU $ - CMD_OPERANDS_ARR
 ;=============================================
 ;              REGISTERS STRINGS              |
+;Each additional byte represents the size     |
+;and the offset of its memory location in     |
+;p_data                                       |
 ;=============================================
 REG_STR_ARR LABEL BYTE
-AX_STR DB 'AX'
-AL_STR DB 'AL'
-AH_STR DB 'AH'
-BX_STR DB 'BX'
-BL_STR DB 'BL'
-BH_STR DB 'BH'
-CX_STR DB 'CX'
-CL_STR DB 'CL'
-CH_STR DB 'CH'
-DX_STR DB 'DX'
-DL_STR DB 'DL'
-DH_STR DB 'DH'
-SI_STR DB 'SI'
-DI_STR DB 'DI'
-BP_STR DB 'BP'
-SP_STR DB 'SP'
+AX_STR DB 'AX', 10000000B 
+AL_STR DB 'AL', 01000000B
+AH_STR DB 'AH', 01000001B
+CX_STR DB 'CX', 10000010B
+CL_STR DB 'CL', 01000010B
+CH_STR DB 'CH', 01000011B
+DX_STR DB 'DX', 10000100B
+DL_STR DB 'DL', 01000100B
+DH_STR DB 'DH', 01000101B
+BX_STR DB 'BX', 10000110B
+BL_STR DB 'BL', 01000110B
+BH_STR DB 'BH', 01000111B
+SI_STR DB 'SI', 10001000B
+DI_STR DB 'DI', 10001010B
+BP_STR DB 'BP', 10001100B
+SP_STR DB 'SP', 10001110B 
 REG_STR_ARR_SIZE EQU $ - REG_STR_ARR
 ;=============================================
 ;             Miscellaneous Data              |
 ;=============================================
 CMD_FLAG  DB 0
 OP_FLAGS  DB 0
-OP1_PROPERTY DB ?
-OP1_LOCATION DW ?
-OP2_PROPERTY DB ?
-OP2_LOCATION DW ?
+;=============================================
+;Each Operand has one byte which contains
+;flags that determines its properties
+;Note that memory can be treated as both
+;16 and 8 bits
+;
+;Byte: b7-0
+;
+;b7: The operand is immediate
+;b6: The operand is register
+;b5: The operand is memory
+;b4: The operand is 16-bits
+;b3: The operand is 8-bits
+;b2-0: Unused
+;=============================================
+
