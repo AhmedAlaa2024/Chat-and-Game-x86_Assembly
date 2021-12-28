@@ -1,22 +1,23 @@
-;JUMPS ;Note this increases memory usage
+JUMPS ;Note this increases memory usage
 LOCALS @@
-PUBLIC PARSER
+
+
+.MODEL SMALL
+.DATA
+EXTRN P_DATA:WORD
 EXTRN CMD_MSG:BYTE
+EXTRN CMD_FLAG:BYTE
+EXTRN OP_FLAGS:BYTE
 EXTRN OP1_PROPERTY:BYTE
 EXTRN OP1_LOCATION:WORD
 EXTRN OP2_PROPERTY:BYTE
 EXTRN OP2_LOCATION:WORD
-EXTRN P1_DATA:BYTE
-EXTRN P1_MEM:BYTE
-EXTRN P2_DATA:BYTE
-EXTRN P2_MEM:BYTE
 
-.MODEL SMALL
-.DATA
 SPLIT_DATA DB 34 dup(0)
-P_DATA DW ?
+
 include data.inc
 .CODE
+PUBLIC PARSER
 include char.inc
 
 ;=============================================================================
@@ -28,7 +29,7 @@ include char.inc
 ;Example Usage:
 ;   SPLIT_STRING used on '  MOV AX,   DI  $'
 ;   Output:
-;       'MOV$AX,$DI$',0
+;       'MOV$AX$,$DI$',0
 ;
 ;   SPLIT_STRING used on '   $'
 ;   Output:
@@ -186,7 +187,8 @@ PARSE_OPERAND PROC NEAR
     ;REG INDIRECT CHECK
     INC SI
     ;CX Contain
-    MOV CX, OFFSET [DI][6]
+    MOV CX, DI
+    ADD CX, 6
 
     MOV BP, WORD PTR SPLIT_DATA[SI]
 
@@ -233,7 +235,9 @@ PARSE_OPERAND PROC NEAR
     SUB BL, '0' ;Get decimal value of digit
     
     @@GET_P_MEM:
-    MOV CX, OFFSET [DI][BX][16]
+    MOV CX, DI
+    ADD CX, BX
+    ADD CX, 16
     JMP @@DIRECT_ADDR_VALID
 
     @@REG_INDIRECT_VALID:
@@ -284,8 +288,8 @@ PARSE_OPERAND PROC NEAR
     MOV BYTE PTR [BX], CL
     AND AL, 0FH ;AL now contains p_data location disp
     MOV AH, 0
-    MOV BX, AX
-    MOV CX, OFFSET [DI][BX]
+    MOV CX, AX
+    ADD CX, DI
     MOV BX, DX
     MOV WORD PTR [BX][1], CX ;Set OP Location
     ADD SI, 3
@@ -354,7 +358,8 @@ PARSE_OPERAND PROC NEAR
     INC SI
     ;AX NOW CONTAINS IMMEDIATE VALUE
     MOV [DI][32], AX
-    MOV BP, OFFSET[DI][32]
+    MOV BP, DI
+    ADD BP, 32
     ;BX = OFFSET OP_PROPERTY
     ;BX + 1 = OFFSET OP_LOCATION
     MOV BX, DX
@@ -396,7 +401,7 @@ PARSE_CMD_OPERANDS PROC NEAR
     AND CL, 10000000B
 
     CMP CL, 0
-    JE NEAR PTR @@FINAL_CHECK
+    JE @@FINAL_CHECK
 
     ;CMP SPLIT_DATA[SI], 0
     ;JNE @@NOT_END_OF_DATA
@@ -424,10 +429,18 @@ PARSE_CMD_OPERANDS PROC NEAR
     MOV CL, OP_FLAGS
     ;CL != 0 IF SECOND Operand is needed
     AND CL, 00001000B
-
     CMP CL, 0
-    JE @@FINAL_CHECK
+    JNE @@OP2_CHECK
 
+    MOV CL, OP_FLAGS
+    AND CL, 00000110B ;CL != 0 if cmd is a shift based cmd
+    CMP CL, 0
+    JNE @@OP2_CHECK
+    
+    ;Operand 2 is not needed
+    JMP @@FINAL_CHECK
+
+    @@OP2_CHECK:
     ;Check for comma
     CMP WORD PTR SPLIT_DATA[SI], 242CH ;',$'
     JNE @@INVALID
@@ -448,6 +461,11 @@ PARSE_CMD_OPERANDS PROC NEAR
     CMP CL, 0 ;If CL == 0 then mode mismatch
     JE @@INVALID 
 
+    MOV CL, OP_FLAGS
+    AND CL, 00001111B ;CL != 0 if cmd is a shift based cmd
+    CMP CL, 00000110B
+    JE @@SHIFT_CMDS_VALIDATION ;Skip regular 2nd operand validation
+
     ;MEM TO MEM Check
     MOV CL, OP1_PROPERTY
     MOV DL, OP2_PROPERTY
@@ -460,12 +478,40 @@ PARSE_CMD_OPERANDS PROC NEAR
     ;Size Mismatch check
     MOV CL, OP1_PROPERTY
     MOV DL, OP2_PROPERTY
+    
+    AND DL, 10001000B
+    CMP DL, 10001000B
+    JNE @@NON_IMMED_SIZE_MISMATCH_CHECK
+    JMP @@FINAL_CHECK
+
+
+    @@NON_IMMED_SIZE_MISMATCH_CHECK:
+    MOV CL, OP1_PROPERTY    
+    MOV DL, OP2_PROPERTY
     AND CL, 00011000B ;Get sizes
     AND DL, 00011000B ;Get sizes
 
     AND CL, DL
     CMP CL, 0 ;CL == 0 if size mismatch
     JE @@INVALID
+    JMP @@FINAL_CHECK
+
+    @@SHIFT_CMDS_VALIDATION:
+    MOV CL, OP2_PROPERTY
+    AND CL, 00010000B
+    CMP CL, 0
+    JNE @@INVALID
+
+    MOV AX, OP2_LOCATION
+    SUB AX, 2
+    CMP AX, DI
+    JE @@FINAL_CHECK
+
+    SUB AX, 30
+    CMP AX, DI
+    JE @@FINAL_CHECK
+
+    JMP @@INVALID
 
     @@FINAL_CHECK:
     CMP SPLIT_DATA[SI], 0
@@ -482,7 +528,6 @@ PARSER PROC FAR
     MOV AX, @DATA
     MOV DS, AX
     ;End initialize
-    
 
     CALL SPLIT_STRING
     TOUPPER SPLIT_DATA, 30

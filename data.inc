@@ -71,13 +71,13 @@ DEC_OPS  DB  10110000B
 XOR_OPS  DB  10111111B
 AND_OPS  DB  10111111B
 OR_OPS   DB  10111111B
-SHR_OPS  DB  10110101B
-SHL_OPS  DB  10110101B
-SAR_OPS  DB  10110101B
-ROR_OPS  DB  10110101B
-RCL_OPS  DB  10110101B
-RCR_OPS  DB  10110101B
-ROL_OPS  DB  10110101B
+SHR_OPS  DB  10110110B
+SHL_OPS  DB  10110110B
+SAR_OPS  DB  10110110B
+ROR_OPS  DB  10110110B
+RCL_OPS  DB  10110110B
+RCR_OPS  DB  10110110B
+ROL_OPS  DB  10110110B
 ;=============================================
 ;           Other Operands Strings            |
 ;=============================================
@@ -114,8 +114,7 @@ REG_STR_ARR_SIZE EQU $ - REG_STR_ARR
 ;=============================================
 ;             Miscellaneous Data              |
 ;=============================================
-CMD_FLAG  DB 0
-OP_FLAGS  DB 0
+
 ;=============================================
 ;Each Operand has one byte which contains
 ;flags that determines its properties
