@@ -1,5 +1,6 @@
         .MODEL SMALL
         .STACK 64 
+        JUMPS
 ;==========================================
 ;                 BIRD DATA               ||
 ;==========================================
@@ -10,8 +11,9 @@ BULLET_SPEED   EQU  5000
 POWERUPSCORE   DB    ?
 BULLET1_MOVING DB 0
 BIRD1_MOVING DB 0
+GAME_MOVING DB 0
 BIRDWING DB 0 ;0 for down 1 for up
-P1_X DW 0
+P1_X DW 300
 P1_Y DW 300
 BULLET1_X DW 200
 BULLET1_Y DW 200
@@ -37,6 +39,16 @@ LIGHT_YELLOW    DB      0EH
 LIGHT_WHITE     DB      0FH
 ;=================================================
 STR_TEMP  DB      ?,?,?,?
+;=================================================
+SEED DW ?
+RANDOM0_4 DW ?
+RANDOM0_99 DW ?
+HIT_P1_1 DW 0
+HIT_P1_2 DW 0
+HIT_P1_3 DW 0
+HIT_P1_4 DW 0
+HIT_P1_5 DW 0
+
 ;=================================================
 shooter db 11,0,107,12,0,107,13,0,107,11,1,107,12,1,107,13,1,107,10,2,107,11,2,106,12,2,107,13,2,107,14,2,107,10,3,106,11,3,107,12,3,107,13,3,107,14,3,107,9,4,107,10,4,106,11,4,107,12,4,107,13,4,107,14,4,107,15,4,107,9,5,106,10,5,106,11,5,107,12,5,107,13,5,107,14,5,107,15,5,107
 db 8,6,107,9,6,106,10,6,107,11,6,107,12,6,107,13,6,107,14,6,107,15,6,107,16,6,108,8,7,106,9,7,107,10,7,107,11,7,107,12,7,107,13,7,107,14,7,107,15,7,107,16,7,108,7,8,107,8,8,106,9,8,107,10,8,107,11,8,107,12,8,107,13,8,107,14,8,107,15,8,107,16,8,108,17,8,108,7,9,107
@@ -197,14 +209,18 @@ ENDM DRAW_MOIVNG_OBJECT
 
 ;===============================================================================      
 DRAW_BIRD  MACRO 
-        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED
+        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND
         PUSH AX
         PUSH CX
         PUSH DX
-        CMP BIRD1_X,0
+        CMP BIRD1_MOVING,0
+        JNE CHECKEND
+        JMP FAR PTR NOCHANGE
+CHECKEND:
+        CMP BIRD1_X,300
         JNE CHECKSPEED
         call DRAW_BIRDUP_BACKGROUND
-        MOV BIRD1_X,600
+        CALL DRAW_BIRDDOWN_BACKGROUND
 CHECKSPEED:
         MOV AX,TIME
         MOV CX,BIRD_SPEED
@@ -245,6 +261,8 @@ DRAW_PLAYER MACRO Y , X ,KEY
                 CMP KEY,75 ;LEFT
                 JNE ISRIGHT
                 CONSUMEBUFFER
+                CMP X,300
+                JBE NOCHANGE
                 CALL DRAW_PLAYER_BACKGROUND
                 SUB X,10
                 JMP DRAW        
@@ -252,6 +270,8 @@ DRAW_PLAYER MACRO Y , X ,KEY
                 CMP KEY,77 ;RIGHT
                 JNE ISUP
                 CONSUMEBUFFER
+                CMP X,575
+                JAE NOCHANGE
                 CALL DRAW_PLAYER_BACKGROUND
                 ADD X,10
                 JMP DRAW  
@@ -259,6 +279,8 @@ DRAW_PLAYER MACRO Y , X ,KEY
                 CMP KEY,72 ;UP
                 JNE ISDOWN
                 CONSUMEBUFFER
+                CMP Y,50
+                JBE NOCHANGE
                 CALL DRAW_PLAYER_BACKGROUND
                 SUB Y,10 
                 JMP DRAW 
@@ -266,6 +288,8 @@ DRAW_PLAYER MACRO Y , X ,KEY
                 CMP KEY,80 ;DOWN
                 JNE NOCHANGE
                 CONSUMEBUFFER
+                CMP Y,300
+                JAE NOCHANGE
                 CALL DRAW_PLAYER_BACKGROUND
                 ADD Y,10 
         DRAW:     
@@ -274,10 +298,11 @@ DRAW_PLAYER MACRO Y , X ,KEY
 
 ENDM DRAW_PLAYER 
 DRAW_BULLET MACRO KEY
-        LOCAL NOCHANGE,DRAW,CHECKSPACE,CHECKMOVING
+        LOCAL NOCHANGE,DRAW,CHECKSPACE,CHECKMOVING,UNHIT,START
         PUSH AX
         PUSH CX
         PUSH DX
+        PUSH SI
                 CMP KEY,57 ;Space
                 JNE CHECKFINISH
                 CONSUMEBUFFER
@@ -292,10 +317,26 @@ DRAW_BULLET MACRO KEY
                 SUB BULLET1_Y,20
                 DRAW_MOIVNG_OBJECT bullet bulletBackground bulletSize Bullet1_Y Bullet1_X 
         CHECKFINISH:
-                CMP BULLET1_Y,10
+                CMP BULLET1_Y,20
                 JNE CHECKMOVING
                 MOV BULLET1_MOVING,0
                 CALL DRAW_BULLET_BACKGROUND
+                MOV SI,BIRD1_X
+                ADD SI,33
+                CMP BULLET1_X,SI
+                JAE UNHIT
+                MOV SI,BULLET1_X
+                ADD SI,48
+                CMP SI,Bird1_X
+                JBE UNHIT
+                CALL END_MINI_GAME_P1
+                call DRAW_BIRDUP_BACKGROUND
+                CALL DRAW_BIRDDOWN_BACKGROUND
+                CALL DRAW_PLAYER_BACKGROUND
+                MOV BIRD1_MOVING,0
+                MOV GAME_MOVING,0
+                MOV Bird1_X,600
+        UNHIT:
                 MOV DX,P1_Y
                 MOV BULLET1_Y,DX
                 JMP NOCHANGE
@@ -312,6 +353,7 @@ DRAW_BULLET MACRO KEY
                 DRAW_MOIVNG_OBJECT bullet bulletBackground bulletSize Bullet1_Y Bullet1_X      
 
         NOCHANGE:
+        POP SI
         POP DX
         POP CX
         POP AX
@@ -427,26 +469,78 @@ MAIN    PROC    FAR
         INT 10H
         ;==================
         DRAW_BACKGROUND
-        DRAW_MOIVNG_OBJECT shooter shooterBackground shooterSize P1_Y P1_X
-        PRINT_4_DIGIT_GRAPHICS 22, 10, CX, RED
 
 
+
+        ;CALL GENERATE_RANDOM
         ;==================
 MAINLOOP:
-        mov ah,1
-        int 16h
+
+NEXT:
         INC TIME
         CMP TIME,0FFFFh
         JNE  Continue
         MOV TIME,0
 Continue:
-        DRAW_PLAYER P1_Y P1_X AH
-        DRAW_BULLET AH
-        DRAW_BIRD
+        CALL MINI_GAME
         JMP MAINLOOP
         ;==================
         RET
 MAIN    ENDP
+;===================================================================
+; The Bird game proc
+;===================================================================
+MINI_GAME PROC 
+        CMP GAME_MOVING,1
+        JE GAMEISMOVING
+        CALL GENERATE_RANDOM
+        CMP RANDOM0_99,88
+        JE GAMENOTMOVING
+        RET
+GAMENOTMOVING:
+        MOV GAME_MOVING,1
+        MOV BIRD1_MOVING,1
+        DRAW_MOIVNG_OBJECT shooter shooterBackground shooterSize P1_Y P1_X
+GAMEISMOVING:
+        mov ah,1
+        int 16h
+        CMP BIRD1_MOVING,0
+        JNE CONTINUE_P1
+        RET
+CONTINUE_P1:
+        DRAW_PLAYER P1_Y P1_X AH
+        DRAW_BULLET AH
+        DRAW_BIRD
+        RET
+ENDP MINI_GAME
+;=========================================================================
+; END_MINI_GAME
+;=========================================================================
+END_MINI_GAME_P1 PROC
+        CMP RANDOM0_4,0
+        JNE CHECKRANDOM1
+        INC HIT_P1_1
+        RET
+CHECKRANDOM1:        
+        CMP RANDOM0_4,1
+        JNE CHECKRANDOM2
+        INC HIT_P1_2
+        RET
+CHECKRANDOM2:        
+        CMP RANDOM0_4,2
+        JNE CHECKRANDOM3
+        INC HIT_P1_3
+        RET
+CHECKRANDOM3:
+        CMP RANDOM0_4,3
+        JNE CHECKRANDOM4
+        INC HIT_P1_4
+        RET
+CHECKRANDOM4:
+        CMP RANDOM0_4,4
+        INC HIT_P1_5
+        RET
+ENDP END_MINI_GAME_P1      
 ;======================================================================================================================================
 ; Draw the previos background of the shooter
 ;======================================================================================================================================
@@ -530,4 +624,39 @@ whilebirddownBackGround:
         POP CX
         RET
 DRAW_BIRDDOWN_BACKGROUND ENDP
+GENERATE_RANDOM PROC 
+        PUSH AX
+        PUSH BX
+        PUSH DX
+        PUSH CX
+        MOV     AH, 00h   ; interrupt to get system timer in CX:DX 
+        INT     1AH
+        mov     [SEED], dx
+        call    CalcNew   ; -> AX is a random number
+        xor     dx, dx
+        mov     cx, 5    
+        div     cx        ; here dx contains the remainder - from 0 to 5
+        MOV RANDOM0_4,DX
+        call    CalcNew   ; -> AX is a random number
+        xor     dx, dx
+        mov     cx, 100    
+        div     cx        ; here dx contains the remainder - from 0 to 5
+        MOV RANDOM0_99,DX
+        POP CX
+        POP DX
+        POP BX
+        POP AX
+        ret
+ENDP GENERATE_RANDOM
+; ----------------
+; inputs: none  (modifies PRN seed variable)
+; clobbers: DX.  returns: AX = next random number
+CalcNew PROC 
+    mov     ax, 25173          ; LCG Multiplier
+    mul     word ptr [SEED]     ; DX:AX = LCG multiplier * seed
+    add     ax, 13849          ; Add LCG increment value
+    ; Modulo 65536, AX = (multiplier*seed+increment) mod 65536
+    mov     [SEED], ax          ; Update seed = return value
+    ret
+ENDP CalcNew
 END      MAIN
