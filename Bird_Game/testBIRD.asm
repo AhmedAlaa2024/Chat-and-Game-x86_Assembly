@@ -219,8 +219,15 @@ DRAW_BIRD  MACRO
 CHECKEND:
         CMP BIRD1_X,300
         JNE CHECKSPEED
+        MOV BIRD1_MOVING,0
+        MOV GAME_MOVING,0
         call DRAW_BIRDUP_BACKGROUND
         CALL DRAW_BIRDDOWN_BACKGROUND
+        call DRAW_PLAYER_BACKGROUND
+        mov Bird1_X,600
+        cmp BULLET1_MOVING,1
+        jne CHECKSPEED
+        call DRAW_BULLET_BACKGROUND
 CHECKSPEED:
         MOV AX,TIME
         MOV CX,BIRD_SPEED
@@ -326,7 +333,7 @@ DRAW_BULLET MACRO KEY
                 CMP BULLET1_X,SI
                 JAE UNHIT
                 MOV SI,BULLET1_X
-                ADD SI,48
+                ADD SI,15
                 CMP SI,Bird1_X
                 JBE UNHIT
                 CALL END_MINI_GAME_P1
@@ -495,7 +502,7 @@ MINI_GAME PROC
         JE GAMEISMOVING
         CALL GENERATE_RANDOM
         CMP RANDOM0_99,88
-        JE GAMENOTMOVING
+        JNE GAMENOTMOVING
         RET
 GAMENOTMOVING:
         MOV GAME_MOVING,1
