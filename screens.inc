@@ -15,8 +15,8 @@ STRT_PRESS_ENTER_PROMPT DB 'Press Enter key to continue','$'
 SET_VIDEO MACRO MODE
     PUSH AX
     PUSH BX
-    MOV AX,4F02h
-    MOV BX,100h
+    MOV AX,4F02H
+    MOV BX,103H
     INT 10H
     POP BX
     POP AX
@@ -152,7 +152,7 @@ ENDM GET_USERNAME
 ;PARAMETERS:  POINTS (2-Bytes)
 ;=============================================================================
 GET_POINTS MACRO POINTS
-    LOCAL GETFIRST, GETNEXT, VALID, RETURN
+    LOCAL GETFIRST, GETNEXT, VALID, DONEFIRST, BACKSPACE, RETURN
     ;The number is stored in BX
     MOV BX, 0
     MOV CX, 0400H ;CL = 0 (current size), CH = 4 (Max Size)
