@@ -1174,7 +1174,28 @@ PRINT_4_DIGIT_GRAPHICS  MACRO   X, Y, NUMBER, COLOR
         POP BX
         POP AX
 ENDM PRINT_4_DIGIT_GRAPHICS
+;===================================================================
+PRINT_1_DIGIT_GRAPHICS  MACRO   X, Y, COLOR, NUMBER
+        PUSH AX
+        PUSH BX
+        PUSH DX
+        ;================
+        MOV AL, NUMBER
+        XOR BX,BX       ; PAGE 0
+        MOV BL,COLOR
 
+        MOVE_CURSOR X, Y
+
+        ADD AL,'0'
+
+        MOV AH,0EH
+        INT 10H
+        ;================
+        POP DX
+        POP BX
+        POP AX
+ENDM    PRINT_1_DIGIT_GRAPHICS
+;===================================================================
 PRINT_NUM_TO_GRAPHICS PROC NEAR
     PUSH CX
     PUSH SI
@@ -1372,6 +1393,15 @@ PLAYER_1_UPDATE_FLAGS_REPRESENTATION    PROC
         DISPLAY_FLAG_VALUE  94, 25, BX, BLUE
         RET
 ENDP    PLAYER_1_UPDATE_FLAGS_REPRESENTATION
+;===================================================================
+PLAYER_1_UPDATE_BIRD_SCORE      PROC
+        PRINT_1_DIGIT_GRAPHICS 55+0, 32, BLUE, HIT_P1_1
+        PRINT_1_DIGIT_GRAPHICS 55+10, 32, GREEN, HIT_P1_2
+        PRINT_1_DIGIT_GRAPHICS 55+20, 32, LIGHT_YELLOW, HIT_P1_3
+        PRINT_1_DIGIT_GRAPHICS 55+30, 32, RED, HIT_P1_4
+        PRINT_1_DIGIT_GRAPHICS 55+40, 32, LIGHT_WHITE, HIT_P1_5
+        RET
+ENDP    PLAYER_1_UPDATE_BIRD_SCORE
 ;===================================================================
 DRAW_PLAYER_1 PROC
         ; Draw Power Ups
@@ -1576,6 +1606,15 @@ PLAYER_2_UPDATE_FLAGS_REPRESENTATION    PROC
         DISPLAY_FLAG_VALUE  44, 25, BX, BLUE
         RET
 ENDP    PLAYER_2_UPDATE_FLAGS_REPRESENTATION
+;===================================================================
+PLAYER_2_UPDATE_BIRD_SCORE      PROC
+        PRINT_1_DIGIT_GRAPHICS 5+0, 32, BLUE, HIT_P2_1
+        PRINT_1_DIGIT_GRAPHICS 5+10, 32, GREEN, HIT_P2_2
+        PRINT_1_DIGIT_GRAPHICS 5+20, 32, LIGHT_YELLOW, HIT_P2_3
+        PRINT_1_DIGIT_GRAPHICS 5+30, 32, RED, HIT_P2_4
+        PRINT_1_DIGIT_GRAPHICS 5+40, 32, LIGHT_WHITE, HIT_P2_5
+        RET
+ENDP    PLAYER_2_UPDATE_BIRD_SCORE
 ;===================================================================
 DRAW_PLAYER_2 PROC
         ; Draw Power Ups
@@ -2189,10 +2228,12 @@ MAIN PROC FAR
     CALL PLAYER_1_UPDATE_REGISTERS_REPRESENTATION
     CALL PLAYER_1_UPDATE_MEMORY_REPRESENTATION
     CALL PLAYER_1_UPDATE_FLAGS_REPRESENTATION
+    CALL PLAYER_1_UPDATE_BIRD_SCORE
 
     CALL PLAYER_2_UPDATE_REGISTERS_REPRESENTATION
     CALL PLAYER_2_UPDATE_MEMORY_REPRESENTATION
     CALL PLAYER_2_UPDATE_FLAGS_REPRESENTATION
+    CALL PLAYER_2_UPDATE_BIRD_SCORE
 
     INC BP
 
