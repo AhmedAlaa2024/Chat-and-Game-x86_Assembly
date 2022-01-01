@@ -2,7 +2,7 @@ include char.inc
 TEXT_MODE EQU 03H
 STRT_NAME_PROMPT DB 'Please enter your name: (Must start with a letter)',13,10,'$'
 STRT_POINT_PROMPT DB 'Enter your suggested initial points: (4-Digit max)',13,10,'$'
-FORBIDDEN_CHAR_PROMPT DB 'Enter your forbidden char: (4-Digit max)',13,10,'$'
+FORBIDDEN_CHAR_PROMPT DB 'Enter your forbidden char: (1 Character Max)',13,10,'$'
 STRT_PRESS_ENTER_PROMPT DB 'Press Enter key to continue','$'
 ;=============================================
 ;              Screen MACROS
@@ -13,7 +13,7 @@ STRT_PRESS_ENTER_PROMPT DB 'Press Enter key to continue','$'
 ;PARAMATER:     mode (1 Byte)
 ;REGISTERS CHANGED: AH  AL
 ;=============================================================================
-SET_VIDEO MACRO MODE
+SET_VIDEO MACRO
     PUSH AX
     PUSH BX
     MOV AX,4F02H
@@ -134,8 +134,8 @@ GET_USERNAME MACRO USERNAME
 
     BACKSPACE:
     DISPLAY_BACKSPACE
-    MOV USERNAME[BX][2], '$'
     DEC BL
+    MOV USERNAME[BX][2], '$'
     CMP BL, 0
     JE GETFIRST
     JMP GETNEXT
@@ -254,7 +254,7 @@ ENDM RUN_STRT_SCREEN
 GET_FORBIDDEN_CHAR MACRO CHAR
     LOCAL GET_AGAIN
 
-    SET_VIDEO TEXT_MODE
+    SET_VIDEO
     DISPLAY_MSG FORBIDDEN_CHAR_PROMPT
     GET_ONE_CHAR CHAR
     DISPLAY_NEWLINE
