@@ -2,6 +2,7 @@ include char.inc
 TEXT_MODE EQU 03H
 STRT_NAME_PROMPT DB 'Please enter your name: (Must start with a letter)',13,10,'$'
 STRT_POINT_PROMPT DB 'Enter your suggested initial points: (4-Digit max)',13,10,'$'
+FORBIDDEN_CHAR_PROMPT DB 'Enter your forbidden char: (4-Digit max)',13,10,'$'
 STRT_PRESS_ENTER_PROMPT DB 'Press Enter key to continue','$'
 ;=============================================
 ;              Screen MACROS
@@ -143,6 +144,21 @@ GET_USERNAME MACRO USERNAME
     MOV USERNAME[1], BL
 ENDM GET_USERNAME
 
+
+GET_ONE_CHAR MACRO CHAR
+    LOCAL GETFIRST, GETNEXT, DONEFIRST, BACKSPACE, RETURN
+
+    GETFIRST:
+    GET_CHAR
+    ISALPHA AL, DONEFIRST
+    ISDIGIT AL, DONEFIRST
+    JMP GETFIRST
+
+    DONEFIRST:
+    DISPLAY_CHAR AL
+    CHARTOUPPER AL
+    MOV CHAR, AL
+ENDM GET_ONE_CHAR
 ;=============================================================================
 ;Gets suggested from STDIN (With ECHO)
 ;No trailing zeros allowed
@@ -234,3 +250,18 @@ RUN_STRT_SCREEN MACRO USERNAME, POINTS
     CMP AL, 13D ;Carriage return
     JNE GET_AGAIN
 ENDM RUN_STRT_SCREEN
+
+GET_FORBIDDEN_CHAR MACRO CHAR
+    LOCAL GET_AGAIN
+
+    SET_VIDEO TEXT_MODE
+    DISPLAY_MSG FORBIDDEN_CHAR_PROMPT
+    GET_ONE_CHAR CHAR
+    DISPLAY_NEWLINE
+
+    DISPLAY_MSG STRT_PRESS_ENTER_PROMPT
+    GET_AGAIN:
+    GET_CHAR
+    CMP AL, 13D ;Carriage return
+    JNE GET_AGAIN
+ENDM GET_FORBIDDEN_CHAR
