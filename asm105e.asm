@@ -1,11 +1,6 @@
 JUMPS
 LOCALS @@
 
-;PUBLIC P_DATA, CMD_MSG, CMD_FLAG, OP_FLAGS, OP1_PROPERTY, OP1_LOCATION, OP2_PROPERTY, OP2_LOCATION, P1_DATA, P1_MEM, P2_DATA, P2_MEM
-;EXTRN PARSER:FAR
-;EXTRN EXEC_CMD:FAR
-;EXTRN FLAGS_LOCATION:WORD
-
 .MODEL SMALL
 .STACK 64
 .DATA
@@ -28,6 +23,9 @@ NAME_2 DB 'PLAYER2$'
 ;UNSIGNED 4-DIGIT NUMBER
 P2_INITIAL_POINTS DW 80
 
+;==================================
+;           GAME STATE
+;==================================
 P1_FORBIDDEN_CHARATER DB 'D'
 P2_FORBIDDEN_CHARATER DB 'F'
 
@@ -42,525 +40,28 @@ P2_CLEARED_ALL_RESGISTERS DB 0
 P1_CHANGED_FORBIDDEN_CHAR DB 0
 P2_CHANGED_FORBIDDEN_CHAR DB 0
 
-INCLUDE screens.inc
-include p_data.inc
-include char.inc
-include data.inc
+PARSE_ERROR_FLAG DB 0
+FORBIDDEN_CHAR_ERROR_FLAG DB 0
 
-;==================
-; PARSER DATA
-;==================
-SPLIT_DATA DB 34 dup(0)
-
-P_DATA DW ?
-
-CMD_FLAG  DB 0
-OP_FLAGS  DB 0
-
-OP1_PROPERTY DB 0
-OP1_LOCATION DW 0
-OP2_PROPERTY DB 0
-OP2_LOCATION DW 0
+;Main screen and selection screen data
+INCLUDE SCREENS.inc
+;Player data
+INCLUDE P_DATA.inc
+;Character macros
+INCLUDE CHAR.inc
+;Parser data
+INCLUDE PRSRDATA.inc
+;Command execution data
+INCLUDE EXECDATA.INC
 
 CMD_BUFF_SIZE EQU 30
 CMD_BUFF DB CMD_BUFF_SIZE, 0
 CMD_MSG DB 31 dup('$')
 
-PARSE_ERROR_FLAG DB 0
-FORBIDDEN_CHAR_ERROR_FLAG DB 0
-
-;=============================================
-;         Arithmetic CMDS PROCS               |
-;=============================================
-EXEC_CMD_ARR LABEL BYTE
-ADD_CMD  DW  OFFSET EXEC_ADD_CMD
-ADC_CMD  DW  OFFSET EXEC_ADC_CMD
-SUB_CMD  DW  OFFSET EXEC_SUB_CMD
-SBB_CMD  DW  OFFSET EXEC_SBB_CMD
-MUL_CMD  DW  OFFSET EXEC_MUL_CMD
-DIV_CMD  DW  OFFSET EXEC_DIV_CMD
-IMUL_CMD DW  OFFSET EXEC_IMUL_CMD
-IDIV_CMD DW  OFFSET EXEC_IDIV_CMD
-INC_CMD  DW  OFFSET EXEC_INC_CMD
-DEC_CMD  DW  OFFSET EXEC_DEC_CMD
-;=============================================
-;         Bitwise CMDS PROCS                  |
-;=============================================
-XOR_CMD  DW  OFFSET EXEC_XOR_CMD
-AND_CMD  DW  OFFSET EXEC_AND_CMD
-OR_CMD   DW  OFFSET EXEC_OR_CMD
-SHR_CMD  DW  OFFSET EXEC_SHR_CMD
-SHL_CMD  DW  OFFSET EXEC_SHL_CMD
-SAR_CMD  DW  OFFSET EXEC_SAR_CMD
-ROR_CMD  DW  OFFSET EXEC_ROR_CMD
-RCL_CMD  DW  OFFSET EXEC_RCL_CMD
-RCR_CMD  DW  OFFSET EXEC_RCR_CMD
-ROL_CMD  DW  OFFSET EXEC_ROL_CMD
-;=============================================
-;           Other CMDS PROCS                  |
-;=============================================
-MOV_CMD  DW  OFFSET EXEC_MOV_CMD
-NOP_CMD  DW  OFFSET EXEC_NOP_CMD
-CLC_CMD  DW  OFFSET EXEC_CLC_CMD
-STC_CMD  DW  OFFSET EXEC_STC_CMD
-
-
 .CODE
+;Execute commands subprogram
+INCLUDE CMD_PROC.INC
 
-GET_FLAGS PROC NEAR
-    MOV BX, P_DATA
-    PUSH [BX][34]
-    POPF
-    RET
-GET_FLAGS ENDP
-
-SET_FLAGS PROC NEAR
-    PUSHF
-    MOV BX, P_DATA
-    POP [BX][34] 
-    RET
-SET_FLAGS ENDP
-
-EXEC_ADD_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV DX, WORD PTR [SI]
-    CALL GET_FLAGS
-    ADD WORD PTR [DI], DX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV DL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    ADD BYTE PTR [DI], DL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_ADD_CMD ENDP
-
-EXEC_ADC_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV DX, WORD PTR [SI]
-    CALL GET_FLAGS
-    ADC WORD PTR [DI], DX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV DL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    ADC BYTE PTR [DI], DL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_ADC_CMD ENDP
-
-EXEC_SUB_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV DX, WORD PTR [SI]
-    CALL GET_FLAGS
-    SUB WORD PTR [DI], DX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV DL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    SUB BYTE PTR [DI], DL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_SUB_CMD ENDP
-
-EXEC_SBB_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV DX, WORD PTR [SI]
-    CALL GET_FLAGS
-    SBB WORD PTR [DI], DX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV DL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    SBB BYTE PTR [DI], DL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_SBB_CMD ENDP
-
-EXEC_MUL_CMD PROC NEAR
-    MOV BX, P_DATA
-    MOV AX, [BX][0]
-    MOV DX, [BX][4]
-
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV CX, WORD PTR [SI]
-    CALL GET_FLAGS
-    MUL CX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV CL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    MUL CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    MOV [BX][0], AX 
-    MOV [BX][4], DX
-    RET
-EXEC_MUL_CMD ENDP
-
-EXEC_IMUL_CMD PROC NEAR
-    MOV BX, P_DATA
-    MOV AX, [BX][0]
-    MOV DX, [BX][4]
-
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV CX, WORD PTR [SI]
-    CALL GET_FLAGS
-    IMUL CX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV CL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    IMUL CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    MOV [BX][0], AX 
-    MOV [BX][4], DX
-    RET
-EXEC_IMUL_CMD ENDP
-
-EXEC_DIV_CMD PROC NEAR
-    MOV BX, P_DATA
-    MOV AX, [BX][0]
-    MOV DX, [BX][4]
-
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV CX, WORD PTR [SI]
-    CALL GET_FLAGS
-    DIV CX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV CL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    DIV CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    MOV [BX][0], AX 
-    MOV [BX][4], DX
-    RET
-EXEC_DIV_CMD ENDP
-
-EXEC_IDIV_CMD PROC NEAR
-    MOV BX, P_DATA
-    MOV AX, [BX][0]
-    MOV DX, [BX][4]
-
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV CX, WORD PTR [SI]
-    CALL GET_FLAGS
-    IDIV CX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV CL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    IDIV CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    MOV [BX][0], AX 
-    MOV [BX][4], DX
-    RET
-EXEC_IDIV_CMD ENDP
-
-EXEC_INC_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    CALL GET_FLAGS
-    INC WORD PTR [DI]
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    INC BYTE PTR [DI]
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_INC_CMD ENDP
-
-EXEC_DEC_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    CALL GET_FLAGS
-    DEC WORD PTR [DI]
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    DEC BYTE PTR [DI]
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_DEC_CMD ENDP
-
-EXEC_XOR_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV DX, WORD PTR [SI]
-    CALL GET_FLAGS
-    XOR WORD PTR [DI], DX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV DL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    XOR BYTE PTR [DI], DL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_XOR_CMD ENDP
-
-EXEC_AND_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV DX, WORD PTR [SI]
-    CALL GET_FLAGS
-    AND WORD PTR [DI], DX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV DL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    AND BYTE PTR [DI], DL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_AND_CMD ENDP
-
-EXEC_OR_CMD PROC NEAR
-    CMP Cl, 0 
-    JNE @@SIZE8  
-    MOV DX, WORD PTR [SI]
-    CALL GET_FLAGS
-    OR WORD PTR [DI], DX
-    JMP @@FINALLY
-
-    @@SIZE8:
-    MOV DL, BYTE PTR [SI]
-    CALL GET_FLAGS
-    OR BYTE PTR [DI], DL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_OR_CMD ENDP 
-
-EXEC_SHR_CMD PROC NEAR
-    CMP Cl, 0
-    MOV CL, BYTE PTR [SI] 
-    JNE @@SIZE8    
-    CALL GET_FLAGS
-    SHR WORD PTR [DI], CL
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    SHR BYTE PTR [DI], CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_SHR_CMD ENDP 
-
-EXEC_SHL_CMD PROC NEAR
-    CMP Cl, 0
-    MOV CL, BYTE PTR [SI] 
-    JNE @@SIZE8    
-    CALL GET_FLAGS
-    SHL WORD PTR [DI], CL
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    SHL BYTE PTR [DI], CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_SHL_CMD ENDP 
-
-EXEC_SAR_CMD PROC NEAR
-    CMP Cl, 0
-    MOV CL, BYTE PTR [SI] 
-    JNE @@SIZE8    
-    CALL GET_FLAGS
-    SAR WORD PTR [DI], CL
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    SAR BYTE PTR [DI], CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_SAR_CMD ENDP 
-
-EXEC_ROR_CMD PROC NEAR
-    CMP Cl, 0
-    MOV CL, BYTE PTR [SI] 
-    JNE @@SIZE8    
-    CALL GET_FLAGS
-    ROR WORD PTR [DI], CL
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    ROR BYTE PTR [DI], CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_ROR_CMD ENDP 
-
-EXEC_RCL_CMD PROC NEAR
-    CMP Cl, 0
-    MOV CL, BYTE PTR [SI] 
-    JNE @@SIZE8    
-    CALL GET_FLAGS
-    RCL WORD PTR [DI], CL
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    RCL BYTE PTR [DI], CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_RCL_CMD ENDP
-
-EXEC_RCR_CMD PROC NEAR
-    CMP Cl, 0
-    MOV CL, BYTE PTR [SI] 
-    JNE @@SIZE8    
-    CALL GET_FLAGS
-    RCR WORD PTR [DI], CL
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    RCR BYTE PTR [DI], CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_RCR_CMD ENDP 
-
-EXEC_ROL_CMD PROC NEAR
-    CMP Cl, 0
-    MOV CL, BYTE PTR [SI] 
-    JNE @@SIZE8    
-    CALL GET_FLAGS
-    ROL WORD PTR [DI], CL
-    JMP @@FINALLY
-
-    @@SIZE8:
-    CALL GET_FLAGS
-    ROL BYTE PTR [DI], CL
-    
-    @@FINALLY:
-    CALL SET_FLAGS
-    RET
-EXEC_ROL_CMD ENDP  
-
-EXEC_MOV_CMD PROC NEAR
-    CMP Cl, 0
-    JNE @@SIZE8
-   
-    MOV DX, WORD PTR [SI]
-    MOV WORD PTR [DI], DX
-    RET
-
-    @@SIZE8:
-    MOV DL, BYTE PTR [SI]
-    MOV BYTE PTR [DI], DL
-    
-    RET
-EXEC_MOV_CMD ENDP
-
-EXEC_NOP_CMD PROC NEAR
-    NOP
-    RET
-EXEC_NOP_CMD ENDP
-
-EXEC_CLC_CMD PROC NEAR
-    CALL GET_FLAGS
-    CLC
-    CALL SET_FLAGS
-    RET
-EXEC_CLC_CMD ENDP
-
-EXEC_STC_CMD PROC NEAR
-    CALL GET_FLAGS
-    STC
-    CALL SET_FLAGS
-    RET
-EXEC_STC_CMD ENDP
-
-EXEC_CMD PROC NEAR
-    ;Initialize Data Segment
-    MOV AX, @DATA
-    MOV DS, AX
-    ;End initialize
-
-    MOV DI, OP1_LOCATION
-    MOV SI, OP2_LOCATION
-
-    MOV CL, OP1_PROPERTY
-    MOV DL, OP1_PROPERTY
-    AND DL, 00100000B   ;Check if memory
-    JZ @@NOT_MEMORY
-    MOV CL, OP2_PROPERTY   
-    @@NOT_MEMORY:
-    AND CL, 00001000B
-
-
-    MOV AH, 0
-    MOV AL, CMD_FLAG
-    SHL AL, 1       ;Get memory location seperated by Words
-    ;AX = CMD memory location displacement
-
-    MOV BX, AX
-    MOV AX, WORD PTR EXEC_CMD_ARR[BX] ;AX = EXEC_CMD_ARR[AX]
-
-    ;AX now contains the memory adress of the proper EXEC_CMD PROC
-    ;PROC NEAR CALL
-    CALL AX
-
-    ;Return from subprogram
-    RET
-EXEC_CMD ENDP
 
 SPLIT_STRING PROC NEAR
     MOV SI, 0   ;CMD_MSG Disp
@@ -636,18 +137,11 @@ SPLIT_STRING PROC NEAR
 SPLIT_STRING ENDP
 
 PARSE_ERROR PROC NEAR
-    ;MOV AH, 02
-    ;MOV DL, 'E'
-    ;INT 21H
     MOV PARSE_ERROR_FLAG, 1
     RET
 PARSE_ERROR ENDP
 
-
 PARSE_VALID PROC NEAR
-    ;MOV AH, 02
-    ;MOV DL, 'V'
-    ;INT 21H
     RET
 PARSE_VALID ENDP
 
@@ -900,7 +394,7 @@ PARSE_OPERAND PROC NEAR
     
     MOV BYTE PTR [BX], 10010000B
     CMP AX, 0FFH
-    JG @@VALID
+    JA @@VALID
 
     MOV BYTE PTR [BX], 10001000B
     JMP @@VALID
@@ -1084,6 +578,7 @@ drawPNG macro column,  row,  color,  Y,  X                 ;x,  y,  color...the 
             add cx,X
             int 10h
 endm drawPNG
+
 savePNG macro column,  row,  color,  Y,  X                 ;x,  y,  color...the last two parameters are the dynamic position of the pixel. Assumes that mov ah,  0ch was priorly done.
             mov AH,0Dh
             mov ch, 0                                                      ;Because all images are db arrays.                                                                             
@@ -1096,6 +591,7 @@ savePNG macro column,  row,  color,  Y,  X                 ;x,  y,  color...the 
             int 10h
             mov color,al
 endm savePNG
+
 DRAW_MOIVNG_OBJECT MACRO img,imgB,imgSize,y,x ;imgB and img are the same width and hight
                 local while
         PUSH AX
@@ -1169,7 +665,7 @@ ENDM DRAW_BIRD
 ;=============================================================================== 
 CONSUMEBUFFER MACRO 
         PUSH AX
-        mov ah,0;CONSUME BUFFER
+        mov ah, 0 ;CONSUME BUFFER
         int 16h      
         POP AX
 ENDM CONSUMEBUFFER
@@ -1216,7 +712,8 @@ DRAW_PLAYER MACRO Y , X ,KEY
                 DRAW_MOIVNG_OBJECT shooter shooterBackground shooterSize P1_Y P1_X      
         NOCHANGE:
 
-ENDM DRAW_PLAYER 
+ENDM DRAW_PLAYER
+
 DRAW_BULLET MACRO KEY
         LOCAL NOCHANGE,DRAW,CHECKSPACE,CHECKMOVING,UNHIT,START
         PUSH AX
@@ -1364,6 +861,7 @@ whileshooterBackGround:
         POP CX
         RET
 DRAW_PLAYER_BACKGROUND ENDP
+
 DRAW_BULLET_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
@@ -1384,6 +882,7 @@ whilebulletBackGround:
         POP CX
         RET
 DRAW_BULLET_BACKGROUND ENDP
+
 DRAW_BIRDUP_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
@@ -1404,6 +903,7 @@ whilebirdupBackGround:
         POP CX
         RET
 DRAW_BIRDUP_BACKGROUND ENDP
+
 DRAW_BIRDDOWN_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
@@ -1424,6 +924,7 @@ whilebirddownBackGround:
         POP CX
         RET
 DRAW_BIRDDOWN_BACKGROUND ENDP
+
 GENERATE_RANDOM PROC 
         PUSH AX
         PUSH BX
@@ -2234,8 +1735,10 @@ EXECUTE_CURRENT_COMMAND PROC NEAR
     MOV CURR_PROCESSOR_FLAG, 00010000B
     RET
 EXECUTE_CURRENT_COMMAND ENDP
-; Subtract ax value from current player score
-; Should check for score reaching zero
+;=============================================
+; Subtract AX value from current player score
+;   Should check for score reaching zero
+;=============================================
 DESCREASE_CURRENT_PLAYER_SCORE PROC NEAR
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2
@@ -2246,10 +1749,10 @@ DESCREASE_CURRENT_PLAYER_SCORE PROC NEAR
     @@EXIT:
     RET
 DESCREASE_CURRENT_PLAYER_SCORE ENDP
-;==========================================
+;=============================================
 ;       Get current player's cmd box
-;       X location and store it in SI
-;==========================================
+;       x location and store it in SI
+;=============================================
 GET_CURR_PLAYER_CMD_X_LOCATION PROC NEAR
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2
@@ -2420,6 +1923,7 @@ MAIN PROC FAR
     MOV AX, 4F02H
     MOV BX, 103H
     INT 10H
+
     ;==================
     ; Draw Screen borders
     DRAW_BACKGROUND LIGHT_WHITE

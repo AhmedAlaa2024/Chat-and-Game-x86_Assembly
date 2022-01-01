@@ -1,0 +1,456 @@
+;==============================
+;       Command Execution
+;           Procedures
+;==============================
+
+GET_FLAGS PROC NEAR
+    MOV BX, P_DATA
+    PUSH [BX][34]
+    POPF
+    RET
+GET_FLAGS ENDP
+
+SET_FLAGS PROC NEAR
+    PUSHF
+    MOV BX, P_DATA
+    POP [BX][34] 
+    RET
+SET_FLAGS ENDP
+
+EXEC_ADD_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV DX, WORD PTR [SI]
+    CALL GET_FLAGS
+    ADD WORD PTR [DI], DX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV DL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    ADD BYTE PTR [DI], DL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_ADD_CMD ENDP
+
+EXEC_ADC_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV DX, WORD PTR [SI]
+    CALL GET_FLAGS
+    ADC WORD PTR [DI], DX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV DL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    ADC BYTE PTR [DI], DL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_ADC_CMD ENDP
+
+EXEC_SUB_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV DX, WORD PTR [SI]
+    CALL GET_FLAGS
+    SUB WORD PTR [DI], DX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV DL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    SUB BYTE PTR [DI], DL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_SUB_CMD ENDP
+
+EXEC_SBB_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV DX, WORD PTR [SI]
+    CALL GET_FLAGS
+    SBB WORD PTR [DI], DX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV DL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    SBB BYTE PTR [DI], DL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_SBB_CMD ENDP
+
+EXEC_MUL_CMD PROC NEAR
+    MOV BX, P_DATA
+    MOV AX, [BX][0]
+    MOV DX, [BX][4]
+
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV CX, WORD PTR [SI]
+    CALL GET_FLAGS
+    MUL CX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV CL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    MUL CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    MOV [BX][0], AX 
+    MOV [BX][4], DX
+    RET
+EXEC_MUL_CMD ENDP
+
+EXEC_IMUL_CMD PROC NEAR
+    MOV BX, P_DATA
+    MOV AX, [BX][0]
+    MOV DX, [BX][4]
+
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV CX, WORD PTR [SI]
+    CALL GET_FLAGS
+    IMUL CX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV CL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    IMUL CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    MOV [BX][0], AX 
+    MOV [BX][4], DX
+    RET
+EXEC_IMUL_CMD ENDP
+
+EXEC_DIV_CMD PROC NEAR
+    MOV BX, P_DATA
+    MOV AX, [BX][0]
+    MOV DX, [BX][4]
+
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV CX, WORD PTR [SI]
+    CALL GET_FLAGS
+    DIV CX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV CL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    DIV CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    MOV [BX][0], AX 
+    MOV [BX][4], DX
+    RET
+EXEC_DIV_CMD ENDP
+
+EXEC_IDIV_CMD PROC NEAR
+    MOV BX, P_DATA
+    MOV AX, [BX][0]
+    MOV DX, [BX][4]
+
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV CX, WORD PTR [SI]
+    CALL GET_FLAGS
+    IDIV CX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV CL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    IDIV CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    MOV [BX][0], AX 
+    MOV [BX][4], DX
+    RET
+EXEC_IDIV_CMD ENDP
+
+EXEC_INC_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    CALL GET_FLAGS
+    INC WORD PTR [DI]
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    INC BYTE PTR [DI]
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_INC_CMD ENDP
+
+EXEC_DEC_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    CALL GET_FLAGS
+    DEC WORD PTR [DI]
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    DEC BYTE PTR [DI]
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_DEC_CMD ENDP
+
+EXEC_XOR_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV DX, WORD PTR [SI]
+    CALL GET_FLAGS
+    XOR WORD PTR [DI], DX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV DL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    XOR BYTE PTR [DI], DL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_XOR_CMD ENDP
+
+EXEC_AND_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV DX, WORD PTR [SI]
+    CALL GET_FLAGS
+    AND WORD PTR [DI], DX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV DL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    AND BYTE PTR [DI], DL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_AND_CMD ENDP
+
+EXEC_OR_CMD PROC NEAR
+    CMP Cl, 0 
+    JNE @@SIZE8  
+    MOV DX, WORD PTR [SI]
+    CALL GET_FLAGS
+    OR WORD PTR [DI], DX
+    JMP @@FINALLY
+
+    @@SIZE8:
+    MOV DL, BYTE PTR [SI]
+    CALL GET_FLAGS
+    OR BYTE PTR [DI], DL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_OR_CMD ENDP 
+
+EXEC_SHR_CMD PROC NEAR
+    CMP Cl, 0
+    MOV CL, BYTE PTR [SI] 
+    JNE @@SIZE8    
+    CALL GET_FLAGS
+    SHR WORD PTR [DI], CL
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    SHR BYTE PTR [DI], CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_SHR_CMD ENDP 
+
+EXEC_SHL_CMD PROC NEAR
+    CMP Cl, 0
+    MOV CL, BYTE PTR [SI] 
+    JNE @@SIZE8    
+    CALL GET_FLAGS
+    SHL WORD PTR [DI], CL
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    SHL BYTE PTR [DI], CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_SHL_CMD ENDP 
+
+EXEC_SAR_CMD PROC NEAR
+    CMP Cl, 0
+    MOV CL, BYTE PTR [SI] 
+    JNE @@SIZE8    
+    CALL GET_FLAGS
+    SAR WORD PTR [DI], CL
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    SAR BYTE PTR [DI], CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_SAR_CMD ENDP 
+
+EXEC_ROR_CMD PROC NEAR
+    CMP Cl, 0
+    MOV CL, BYTE PTR [SI] 
+    JNE @@SIZE8    
+    CALL GET_FLAGS
+    ROR WORD PTR [DI], CL
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    ROR BYTE PTR [DI], CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_ROR_CMD ENDP 
+
+EXEC_RCL_CMD PROC NEAR
+    CMP Cl, 0
+    MOV CL, BYTE PTR [SI] 
+    JNE @@SIZE8    
+    CALL GET_FLAGS
+    RCL WORD PTR [DI], CL
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    RCL BYTE PTR [DI], CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_RCL_CMD ENDP
+
+EXEC_RCR_CMD PROC NEAR
+    CMP Cl, 0
+    MOV CL, BYTE PTR [SI] 
+    JNE @@SIZE8    
+    CALL GET_FLAGS
+    RCR WORD PTR [DI], CL
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    RCR BYTE PTR [DI], CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_RCR_CMD ENDP 
+
+EXEC_ROL_CMD PROC NEAR
+    CMP Cl, 0
+    MOV CL, BYTE PTR [SI] 
+    JNE @@SIZE8    
+    CALL GET_FLAGS
+    ROL WORD PTR [DI], CL
+    JMP @@FINALLY
+
+    @@SIZE8:
+    CALL GET_FLAGS
+    ROL BYTE PTR [DI], CL
+    
+    @@FINALLY:
+    CALL SET_FLAGS
+    RET
+EXEC_ROL_CMD ENDP  
+
+EXEC_MOV_CMD PROC NEAR
+    CMP Cl, 0
+    JNE @@SIZE8
+   
+    MOV DX, WORD PTR [SI]
+    MOV WORD PTR [DI], DX
+    RET
+
+    @@SIZE8:
+    MOV DL, BYTE PTR [SI]
+    MOV BYTE PTR [DI], DL
+    
+    RET
+EXEC_MOV_CMD ENDP
+
+EXEC_NOP_CMD PROC NEAR
+    NOP
+    RET
+EXEC_NOP_CMD ENDP
+
+EXEC_CLC_CMD PROC NEAR
+    CALL GET_FLAGS
+    CLC
+    CALL SET_FLAGS
+    RET
+EXEC_CLC_CMD ENDP
+
+EXEC_STC_CMD PROC NEAR
+    CALL GET_FLAGS
+    STC
+    CALL SET_FLAGS
+    RET
+EXEC_STC_CMD ENDP
+
+;==============================
+;       Main Procedure
+;==============================
+EXEC_CMD PROC NEAR
+    MOV DI, OP1_LOCATION
+    MOV SI, OP2_LOCATION
+
+    MOV CL, OP1_PROPERTY
+    MOV DL, OP1_PROPERTY
+    AND DL, 00100000B   ;Check if memory
+    JZ @@NOT_MEMORY
+    MOV CL, OP2_PROPERTY   
+    @@NOT_MEMORY:
+    AND CL, 00001000B
+
+
+    MOV AH, 0
+    MOV AL, CMD_FLAG
+    SHL AL, 1       ;Get memory location seperated by Words
+    ;AX = CMD memory location displacement
+
+    MOV BX, AX
+    MOV AX, WORD PTR EXEC_CMD_ARR[BX] ;AX = EXEC_CMD_ARR[AX]
+
+    ;AX now contains the memory adress of the proper EXEC_CMD PROC
+    CALL AX ;PROC NEAR CALL
+
+    ;Return from subprogram
+    RET
+EXEC_CMD ENDP

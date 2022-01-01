@@ -1,3 +1,11 @@
+
+;==================
+; PARSER DATA
+;==================
+SPLIT_DATA DB 34 dup(0)
+
+;Pointer to current player data array
+P_DATA DW ?
 CMD_ARR LABEL BYTE
 ;=============================================
 ;         Arithmatic Operations Strings       |
@@ -114,6 +122,8 @@ REG_STR_ARR_SIZE EQU $ - REG_STR_ARR
 ;=============================================
 ;             Miscellaneous Data              |
 ;=============================================
+CMD_FLAG  DB 0
+OP_FLAGS  DB 0
 
 ;=============================================
 ;Each Operand has one byte which contains
@@ -130,4 +140,7 @@ REG_STR_ARR_SIZE EQU $ - REG_STR_ARR
 ;b3: The operand is 8-bits
 ;b2-0: Unused
 ;=============================================
-
+OP1_PROPERTY DB 0
+OP1_LOCATION DW 0
+OP2_PROPERTY DB 0
+OP2_LOCATION DW 0

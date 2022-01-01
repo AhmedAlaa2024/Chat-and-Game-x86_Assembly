@@ -1,0 +1,34 @@
+;=============================================
+;         Arithmetic CMDS PROCS               |
+;=============================================
+EXEC_CMD_ARR LABEL BYTE
+ADD_CMD  DW  OFFSET EXEC_ADD_CMD
+ADC_CMD  DW  OFFSET EXEC_ADC_CMD
+SUB_CMD  DW  OFFSET EXEC_SUB_CMD
+SBB_CMD  DW  OFFSET EXEC_SBB_CMD
+MUL_CMD  DW  OFFSET EXEC_MUL_CMD
+DIV_CMD  DW  OFFSET EXEC_DIV_CMD
+IMUL_CMD DW  OFFSET EXEC_IMUL_CMD
+IDIV_CMD DW  OFFSET EXEC_IDIV_CMD
+INC_CMD  DW  OFFSET EXEC_INC_CMD
+DEC_CMD  DW  OFFSET EXEC_DEC_CMD
+;=============================================
+;         Bitwise CMDS PROCS                  |
+;=============================================
+XOR_CMD  DW  OFFSET EXEC_XOR_CMD
+AND_CMD  DW  OFFSET EXEC_AND_CMD
+OR_CMD   DW  OFFSET EXEC_OR_CMD
+SHR_CMD  DW  OFFSET EXEC_SHR_CMD
+SHL_CMD  DW  OFFSET EXEC_SHL_CMD
+SAR_CMD  DW  OFFSET EXEC_SAR_CMD
+ROR_CMD  DW  OFFSET EXEC_ROR_CMD
+RCL_CMD  DW  OFFSET EXEC_RCL_CMD
+RCR_CMD  DW  OFFSET EXEC_RCR_CMD
+ROL_CMD  DW  OFFSET EXEC_ROL_CMD
+;=============================================
+;           Other CMDS PROCS                  |
+;=============================================
+MOV_CMD  DW  OFFSET EXEC_MOV_CMD
+NOP_CMD  DW  OFFSET EXEC_NOP_CMD
+CLC_CMD  DW  OFFSET EXEC_CLC_CMD
+STC_CMD  DW  OFFSET EXEC_STC_CMD
