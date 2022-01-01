@@ -1,22 +1,34 @@
         .MODEL SMALL
         .STACK 64 
+        JUMPS
+        LOCALS @@
 ;==========================================
 ;                 BIRD DATA               ||
 ;==========================================
         .DATA
 TIME DW 0
-BIRD_SPEED     EQU  10000
-BULLET_SPEED   EQU  5000
+BIRD_SPEED     EQU  5000
+BULLET_SPEED   EQU  2500
 POWERUPSCORE   DB    ?
 BULLET1_MOVING DB 0
+BULLET2_MOVING DB 0
 BIRD1_MOVING DB 0
-BIRDWING DB 0 ;0 for down 1 for up
-P1_X DW 0
+BIRD2_MOVING DB 0
+GAME_MOVING DB 0
+BIRDWING1 DB 0 ;0 for down 1 for up
+BIRDWING2 DB 0 ;0 for down 1 for up
+P1_X DW 300
 P1_Y DW 300
+P2_X DW 000
+P2_Y DW 300
 BULLET1_X DW 200
 BULLET1_Y DW 200
+BULLET2_X DW 200
+BULLET2_Y DW 200
 BIRD1_X DW 600
 BIRD1_Y DW 0
+BIRD2_X DW 300
+BIRD2_Y DW 0
 ;======================================================================================================================================
 ;=================================================
 BLACK           DB      00H
@@ -38,6 +50,26 @@ LIGHT_WHITE     DB      0FH
 ;=================================================
 STR_TEMP  DB      ?,?,?,?
 ;=================================================
+SEED DW ?
+RANDOM0_4 DW ?
+RANDOM0_99 DW ?
+;=================================================
+; player 1 score
+;=================================================
+HIT_P1_1 DW 0
+HIT_P1_2 DW 0
+HIT_P1_3 DW 0
+HIT_P1_4 DW 0
+HIT_P1_5 DW 0
+;=================================================
+; player 2 score
+;=================================================
+HIT_P2_1 DW 0
+HIT_P2_2 DW 0
+HIT_P2_3 DW 0
+HIT_P2_4 DW 0
+HIT_P2_5 DW 0
+;=================================================
 shooter db 11,0,107,12,0,107,13,0,107,11,1,107,12,1,107,13,1,107,10,2,107,11,2,106,12,2,107,13,2,107,14,2,107,10,3,106,11,3,107,12,3,107,13,3,107,14,3,107,9,4,107,10,4,106,11,4,107,12,4,107,13,4,107,14,4,107,15,4,107,9,5,106,10,5,106,11,5,107,12,5,107,13,5,107,14,5,107,15,5,107
 db 8,6,107,9,6,106,10,6,107,11,6,107,12,6,107,13,6,107,14,6,107,15,6,107,16,6,108,8,7,106,9,7,107,10,7,107,11,7,107,12,7,107,13,7,107,14,7,107,15,7,107,16,7,108,7,8,107,8,8,106,9,8,107,10,8,107,11,8,107,12,8,107,13,8,107,14,8,107,15,8,107,16,8,108,17,8,108,7,9,107
 db 8,9,107,9,9,107,10,9,107,11,9,107,12,9,107,13,9,107,14,9,107,15,9,108,16,9,108,17,9,108,6,10,107,7,10,106,8,10,107,9,10,107,10,10,107,11,10,107,12,10,107,13,10,107,14,10,107,15,10,108,16,10,108,17,10,108,18,10,108,6,11,107,7,11,107,8,11,107,9,11,107,10,11,107,11,11,107,12,11,107
@@ -51,7 +83,7 @@ db 18,21,108,19,21,108,20,21,108,21,21,108,22,21,108,23,21,108,1,22,106,2,22,107
 db 1,23,107,2,23,107,3,23,107,4,23,107,5,23,107,6,23,107,7,23,107,8,23,107,9,23,107,10,23,108,11,23,108,12,23,108,13,23,108,14,23,108,15,23,108,16,23,108,17,23,108,18,23,108,19,23,108,20,23,108,21,23,108,22,23,108,23,23,108,24,23,108,0,24,106,1,24,107,2,24,107,3,24,107,4,24,107,5,24,107
 db 6,24,107,7,24,107,8,24,107,9,24,107,10,24,108,11,24,108,12,24,108,13,24,108,14,24,108,15,24,108,16,24,108,17,24,108,18,24,108,19,24,108,20,24,108,21,24,108,22,24,108,23,24,108,24,24,108
 shooterSize dw 25 
-shooterBackGround db 11,0,107,12,0,107,13,0,107,11,1,107,12,1,107,13,1,107,10,2,107,11,2,106,12,2,107,13,2,107,14,2,107,10,3,106,11,3,107,12,3,107,13,3,107,14,3,107,9,4,107,10,4,106,11,4,107,12,4,107,13,4,107,14,4,107,15,4,107,9,5,106,10,5,106,11,5,107,12,5,107,13,5,107,14,5,107,15,5,107
+shooter1BackGround db 11,0,107,12,0,107,13,0,107,11,1,107,12,1,107,13,1,107,10,2,107,11,2,106,12,2,107,13,2,107,14,2,107,10,3,106,11,3,107,12,3,107,13,3,107,14,3,107,9,4,107,10,4,106,11,4,107,12,4,107,13,4,107,14,4,107,15,4,107,9,5,106,10,5,106,11,5,107,12,5,107,13,5,107,14,5,107,15,5,107
 db 8,6,107,9,6,106,10,6,107,11,6,107,12,6,107,13,6,107,14,6,107,15,6,107,16,6,108,8,7,106,9,7,107,10,7,107,11,7,107,12,7,107,13,7,107,14,7,107,15,7,107,16,7,108,7,8,107,8,8,106,9,8,107,10,8,107,11,8,107,12,8,107,13,8,107,14,8,107,15,8,107,16,8,108,17,8,108,7,9,107
 db 8,9,107,9,9,107,10,9,107,11,9,107,12,9,107,13,9,107,14,9,107,15,9,108,16,9,108,17,9,108,6,10,107,7,10,106,8,10,107,9,10,107,10,10,107,11,10,107,12,10,107,13,10,107,14,10,107,15,10,108,16,10,108,17,10,108,18,10,108,6,11,107,7,11,107,8,11,107,9,11,107,10,11,107,11,11,107,12,11,107
 db 13,11,107,14,11,107,15,11,108,16,11,108,17,11,108,18,11,108,6,12,106,7,12,107,8,12,107,9,12,107,10,12,107,11,12,107,12,12,107,13,12,107,14,12,108,15,12,108,16,12,108,17,12,108,18,12,108,5,13,107,6,13,107,7,13,107,8,13,107,9,13,107,10,13,107,11,13,107,12,13,107,13,13,108,14,13,108,15,13,108
@@ -63,7 +95,20 @@ db 10,20,108,11,20,108,12,20,108,13,20,108,14,20,108,15,20,108,16,20,108,17,20,1
 db 18,21,108,19,21,108,20,21,108,21,21,108,22,21,108,23,21,108,1,22,106,2,22,107,3,22,107,4,22,107,5,22,107,6,22,107,7,22,107,8,22,107,9,22,107,10,22,108,11,22,108,12,22,108,13,22,108,14,22,108,15,22,108,16,22,108,17,22,108,18,22,108,19,22,108,20,22,108,21,22,108,22,22,108,23,22,108,0,23,107
 db 1,23,107,2,23,107,3,23,107,4,23,107,5,23,107,6,23,107,7,23,107,8,23,107,9,23,107,10,23,108,11,23,108,12,23,108,13,23,108,14,23,108,15,23,108,16,23,108,17,23,108,18,23,108,19,23,108,20,23,108,21,23,108,22,23,108,23,23,108,24,23,108,0,24,106,1,24,107,2,24,107,3,24,107,4,24,107,5,24,107
 db 6,24,107,7,24,107,8,24,107,9,24,107,10,24,108,11,24,108,12,24,108,13,24,108,14,24,108,15,24,108,16,24,108,17,24,108,18,24,108,19,24,108,20,24,108,21,24,108,22,24,108,23,24,108,24,24,108
-shooterBackGroundSize dw 25   
+shooter1BackGroundSize dw 25   
+shooter2BackGround db 11,0,107,12,0,107,13,0,107,11,1,107,12,1,107,13,1,107,10,2,107,11,2,106,12,2,107,13,2,107,14,2,107,10,3,106,11,3,107,12,3,107,13,3,107,14,3,107,9,4,107,10,4,106,11,4,107,12,4,107,13,4,107,14,4,107,15,4,107,9,5,106,10,5,106,11,5,107,12,5,107,13,5,107,14,5,107,15,5,107
+db 8,6,107,9,6,106,10,6,107,11,6,107,12,6,107,13,6,107,14,6,107,15,6,107,16,6,108,8,7,106,9,7,107,10,7,107,11,7,107,12,7,107,13,7,107,14,7,107,15,7,107,16,7,108,7,8,107,8,8,106,9,8,107,10,8,107,11,8,107,12,8,107,13,8,107,14,8,107,15,8,107,16,8,108,17,8,108,7,9,107
+db 8,9,107,9,9,107,10,9,107,11,9,107,12,9,107,13,9,107,14,9,107,15,9,108,16,9,108,17,9,108,6,10,107,7,10,106,8,10,107,9,10,107,10,10,107,11,10,107,12,10,107,13,10,107,14,10,107,15,10,108,16,10,108,17,10,108,18,10,108,6,11,107,7,11,107,8,11,107,9,11,107,10,11,107,11,11,107,12,11,107
+db 13,11,107,14,11,107,15,11,108,16,11,108,17,11,108,18,11,108,6,12,106,7,12,107,8,12,107,9,12,107,10,12,107,11,12,107,12,12,107,13,12,107,14,12,108,15,12,108,16,12,108,17,12,108,18,12,108,5,13,107,6,13,107,7,13,107,8,13,107,9,13,107,10,13,107,11,13,107,12,13,107,13,13,108,14,13,108,15,13,108
+db 16,13,108,17,13,108,18,13,108,19,13,108,5,14,106,6,14,107,7,14,107,8,14,107,9,14,107,10,14,107,11,14,107,12,14,107,13,14,108,14,14,108,15,14,108,16,14,108,17,14,108,18,14,108,19,14,108,4,15,108,5,15,106,6,15,107,7,15,107,8,15,107,9,15,107,10,15,107,11,15,107,12,15,108,13,15,108,14,15,108
+db 15,15,108,16,15,108,17,15,108,18,15,108,19,15,108,20,15,108,4,16,106,5,16,106,6,16,107,7,16,107,8,16,107,9,16,107,10,16,107,11,16,107,12,16,108,13,16,108,14,16,108,15,16,108,16,16,108,17,16,108,18,16,108,19,16,108,20,16,108,3,17,107,4,17,106,5,17,107,6,17,107,7,17,107,8,17,107,9,17,107
+db 10,17,107,11,17,107,12,17,108,13,17,108,14,17,108,15,17,108,16,17,108,17,17,108,18,17,108,19,17,108,20,17,108,21,17,108,3,18,106,4,18,107,5,18,107,6,18,107,7,18,107,8,18,107,9,18,107,10,18,107,11,18,108,12,18,108,13,18,108,14,18,108,15,18,108,16,18,108,17,18,108,18,18,108,19,18,108,20,18,108
+db 21,18,108,2,19,107,3,19,107,4,19,107,5,19,107,6,19,107,7,19,107,8,19,107,9,19,107,10,19,107,11,19,108,12,19,108,13,19,108,14,19,108,15,19,108,16,19,108,17,19,108,18,19,108,19,19,108,20,19,108,21,19,108,22,19,108,2,20,106,3,20,107,4,20,107,5,20,107,6,20,107,7,20,107,8,20,107,9,20,107
+db 10,20,108,11,20,108,12,20,108,13,20,108,14,20,108,15,20,108,16,20,108,17,20,108,18,20,108,19,20,108,20,20,108,21,20,108,22,20,108,1,21,107,2,21,107,3,21,107,4,21,107,5,21,107,6,21,107,7,21,107,8,21,107,9,21,107,10,21,108,11,21,108,12,21,108,13,21,108,14,21,108,15,21,108,16,21,108,17,21,108
+db 18,21,108,19,21,108,20,21,108,21,21,108,22,21,108,23,21,108,1,22,106,2,22,107,3,22,107,4,22,107,5,22,107,6,22,107,7,22,107,8,22,107,9,22,107,10,22,108,11,22,108,12,22,108,13,22,108,14,22,108,15,22,108,16,22,108,17,22,108,18,22,108,19,22,108,20,22,108,21,22,108,22,22,108,23,22,108,0,23,107
+db 1,23,107,2,23,107,3,23,107,4,23,107,5,23,107,6,23,107,7,23,107,8,23,107,9,23,107,10,23,108,11,23,108,12,23,108,13,23,108,14,23,108,15,23,108,16,23,108,17,23,108,18,23,108,19,23,108,20,23,108,21,23,108,22,23,108,23,23,108,24,23,108,0,24,106,1,24,107,2,24,107,3,24,107,4,24,107,5,24,107
+db 6,24,107,7,24,107,8,24,107,9,24,107,10,24,108,11,24,108,12,24,108,13,24,108,14,24,108,15,24,108,16,24,108,17,24,108,18,24,108,19,24,108,20,24,108,21,24,108,22,24,108,23,24,108,24,24,108
+shooter2BackGroundSize dw 25  
 Bullet db 5,0,113,6,0,113,7,0,113,8,0,113,9,0,113,3,1,113,4,1,113,5,1,113,6,1,113,7,1,113,8,1,113,9,1,113,10,1,41,11,1,41,2,2,113,3,2,113,4,2,113,5,2,113,6,2,113,7,2,113,8,2,113,9,2,113,10,2,41,11,2,41,12,2,41,1,3,113,2,3,113,3,3,113,4,3,113,5,3,185
 db 6,3,113,7,3,113,8,3,113,9,3,41,10,3,41,11,3,41,12,3,41,13,3,41,1,4,113,2,4,113,3,4,113,4,4,113,5,4,113,6,4,113,7,4,113,8,4,113,9,4,41,10,4,41,11,4,41,12,4,41,13,4,41,0,5,113,1,5,113,2,5,113,3,5,113,4,5,113,5,5,113,6,5,185,7,5,113,8,5,41
 db 9,5,41,10,5,41,11,5,41,12,5,41,13,5,41,14,5,41,0,6,113,1,6,113,2,6,113,3,6,113,4,6,113,5,6,113,6,6,113,7,6,41,8,6,41,9,6,41,10,6,41,11,6,41,12,6,41,13,6,41,14,6,41,0,7,113,1,7,113,2,7,113,3,7,113,4,7,113,5,7,113,6,7,113,7,7,41,8,7,41
@@ -71,13 +116,20 @@ db 9,7,41,10,7,41,11,7,41,12,7,41,13,7,41,14,7,41,0,8,113,1,8,113,2,8,113,3,8,11
 db 9,9,41,10,9,41,11,9,41,12,9,41,13,9,41,14,9,41,1,10,113,2,10,113,3,10,41,4,10,113,5,10,113,6,10,41,7,10,41,8,10,41,9,10,41,10,10,41,11,10,41,12,10,41,13,10,41,1,11,113,2,11,113,3,11,113,4,11,113,5,11,113,6,11,41,7,11,41,8,11,41,9,11,41,10,11,41,11,11,41
 db 12,11,41,13,11,41,2,12,113,3,12,113,4,12,113,5,12,41,6,12,41,7,12,41,8,12,41,9,12,41,10,12,41,11,12,41,12,12,41,3,13,113,4,13,113,5,13,41,6,13,41,7,13,41,8,13,41,9,13,41,10,13,41,11,13,41,5,14,41,6,14,41,7,14,41,8,14,41,9,14,41
 bulletSize dw 15    
-bulletBackGround db 5,0,113,6,0,113,7,0,113,8,0,113,9,0,113,3,1,113,4,1,113,5,1,113,6,1,113,7,1,113,8,1,113,9,1,113,10,1,41,11,1,41,2,2,113,3,2,113,4,2,113,5,2,113,6,2,113,7,2,113,8,2,113,9,2,113,10,2,41,11,2,41,12,2,41,1,3,113,2,3,113,3,3,113,4,3,113,5,3,185
+bullet1BackGround db 5,0,113,6,0,113,7,0,113,8,0,113,9,0,113,3,1,113,4,1,113,5,1,113,6,1,113,7,1,113,8,1,113,9,1,113,10,1,41,11,1,41,2,2,113,3,2,113,4,2,113,5,2,113,6,2,113,7,2,113,8,2,113,9,2,113,10,2,41,11,2,41,12,2,41,1,3,113,2,3,113,3,3,113,4,3,113,5,3,185
 db 6,3,113,7,3,113,8,3,113,9,3,41,10,3,41,11,3,41,12,3,41,13,3,41,1,4,113,2,4,113,3,4,113,4,4,113,5,4,113,6,4,113,7,4,113,8,4,113,9,4,41,10,4,41,11,4,41,12,4,41,13,4,41,0,5,113,1,5,113,2,5,113,3,5,113,4,5,113,5,5,113,6,5,185,7,5,113,8,5,41
 db 9,5,41,10,5,41,11,5,41,12,5,41,13,5,41,14,5,41,0,6,113,1,6,113,2,6,113,3,6,113,4,6,113,5,6,113,6,6,113,7,6,41,8,6,41,9,6,41,10,6,41,11,6,41,12,6,41,13,6,41,14,6,41,0,7,113,1,7,113,2,7,113,3,7,113,4,7,113,5,7,113,6,7,113,7,7,41,8,7,41
 db 9,7,41,10,7,41,11,7,41,12,7,41,13,7,41,14,7,41,0,8,113,1,8,113,2,8,113,3,8,113,4,8,113,5,8,113,6,8,41,7,8,41,8,8,41,9,8,41,10,8,41,11,8,41,12,8,41,13,8,41,14,8,41,0,9,113,1,9,113,2,9,113,3,9,113,4,9,113,5,9,113,6,9,41,7,9,41,8,9,41
 db 9,9,41,10,9,41,11,9,41,12,9,41,13,9,41,14,9,41,1,10,113,2,10,113,3,10,41,4,10,113,5,10,113,6,10,41,7,10,41,8,10,41,9,10,41,10,10,41,11,10,41,12,10,41,13,10,41,1,11,113,2,11,113,3,11,113,4,11,113,5,11,113,6,11,41,7,11,41,8,11,41,9,11,41,10,11,41,11,11,41
 db 12,11,41,13,11,41,2,12,113,3,12,113,4,12,113,5,12,41,6,12,41,7,12,41,8,12,41,9,12,41,10,12,41,11,12,41,12,12,41,3,13,113,4,13,113,5,13,41,6,13,41,7,13,41,8,13,41,9,13,41,10,13,41,11,13,41,5,14,41,6,14,41,7,14,41,8,14,41,9,14,41
-bulletBackGroundSize dw 15     
+bullet1BackGroundSize dw 15    
+bullet2BackGround db 5,0,113,6,0,113,7,0,113,8,0,113,9,0,113,3,1,113,4,1,113,5,1,113,6,1,113,7,1,113,8,1,113,9,1,113,10,1,41,11,1,41,2,2,113,3,2,113,4,2,113,5,2,113,6,2,113,7,2,113,8,2,113,9,2,113,10,2,41,11,2,41,12,2,41,1,3,113,2,3,113,3,3,113,4,3,113,5,3,185
+db 6,3,113,7,3,113,8,3,113,9,3,41,10,3,41,11,3,41,12,3,41,13,3,41,1,4,113,2,4,113,3,4,113,4,4,113,5,4,113,6,4,113,7,4,113,8,4,113,9,4,41,10,4,41,11,4,41,12,4,41,13,4,41,0,5,113,1,5,113,2,5,113,3,5,113,4,5,113,5,5,113,6,5,185,7,5,113,8,5,41
+db 9,5,41,10,5,41,11,5,41,12,5,41,13,5,41,14,5,41,0,6,113,1,6,113,2,6,113,3,6,113,4,6,113,5,6,113,6,6,113,7,6,41,8,6,41,9,6,41,10,6,41,11,6,41,12,6,41,13,6,41,14,6,41,0,7,113,1,7,113,2,7,113,3,7,113,4,7,113,5,7,113,6,7,113,7,7,41,8,7,41
+db 9,7,41,10,7,41,11,7,41,12,7,41,13,7,41,14,7,41,0,8,113,1,8,113,2,8,113,3,8,113,4,8,113,5,8,113,6,8,41,7,8,41,8,8,41,9,8,41,10,8,41,11,8,41,12,8,41,13,8,41,14,8,41,0,9,113,1,9,113,2,9,113,3,9,113,4,9,113,5,9,113,6,9,41,7,9,41,8,9,41
+db 9,9,41,10,9,41,11,9,41,12,9,41,13,9,41,14,9,41,1,10,113,2,10,113,3,10,41,4,10,113,5,10,113,6,10,41,7,10,41,8,10,41,9,10,41,10,10,41,11,10,41,12,10,41,13,10,41,1,11,113,2,11,113,3,11,113,4,11,113,5,11,113,6,11,41,7,11,41,8,11,41,9,11,41,10,11,41,11,11,41
+db 12,11,41,13,11,41,2,12,113,3,12,113,4,12,113,5,12,41,6,12,41,7,12,41,8,12,41,9,12,41,10,12,41,11,12,41,12,12,41,3,13,113,4,13,113,5,13,41,6,13,41,7,13,41,8,13,41,9,13,41,10,13,41,11,13,41,5,14,41,6,14,41,7,14,41,8,14,41,9,14,41
+bullet2BackGroundSize dw 15   
 birddown db 6,0,16,7,0,16,8,0,16,9,0,16,10,0,16,11,0,16,12,0,16,13,0,16,14,0,16,6,1,16,7,1,16,8,1,16,9,1,16,10,1,16,11,1,16,12,1,16,13,1,16,14,1,16,4,2,16,5,2,16,6,2,150,7,2,150,8,2,151,9,2,151,10,2,151,11,2,151,12,2,151,13,2,151,14,2,151,15,2,16
 db 16,2,16,17,2,16,18,2,16,19,2,16,20,2,16,25,2,16,26,2,16,27,2,16,28,2,16,29,2,16,30,2,16,4,3,16,5,3,16,6,3,150,7,3,150,8,3,150,9,3,150,10,3,150,11,3,150,12,3,150,13,3,150,14,3,150,15,3,16,16,3,16,17,3,16,18,3,16,19,3,16,20,3,16,25,3,16,26,3,16
 db 27,3,16,28,3,16,29,3,16,30,3,16,2,4,16,3,4,16,4,4,43,5,4,43,6,4,14,7,4,14,8,4,16,9,4,16,10,4,150,11,4,150,12,4,150,13,4,150,14,4,150,15,4,150,16,4,150,17,4,151,18,4,151,19,4,151,20,4,151,21,4,16,22,4,16,23,4,128,24,4,128,25,4,150,26,4,150,27,4,150
@@ -196,15 +248,26 @@ while:
 ENDM DRAW_MOIVNG_OBJECT
 
 ;===============================================================================      
-DRAW_BIRD  MACRO 
-        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED
+DRAW_BIRD1  MACRO 
+        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND
         PUSH AX
         PUSH CX
         PUSH DX
-        CMP BIRD1_X,0
+        CMP BIRD1_MOVING,0
+        JNE CHECKEND
+        JMP FAR PTR NOCHANGE
+CHECKEND:
+        CMP BIRD1_X,300
         JNE CHECKSPEED
-        call DRAW_BIRDUP_BACKGROUND
-        MOV BIRD1_X,600
+        MOV BIRD1_MOVING,0
+        CALL MINI_GAME_MOVING
+        call DRAW_BIRDUP1_BACKGROUND
+        CALL DRAW_BIRDDOWN1_BACKGROUND
+        call DRAW_PLAYER1_BACKGROUND
+        mov Bird1_X,600
+        cmp BULLET1_MOVING,1
+        jne CHECKSPEED
+        call DRAW_BULLET1_BACKGROUND
 CHECKSPEED:
         MOV AX,TIME
         MOV CX,BIRD_SPEED
@@ -213,23 +276,68 @@ CHECKSPEED:
         JE SHIFT
         JMP FAR PTR NOCHANGE
 SHIFT:
-        CMP BIRDWING,1
+        CMP BIRDWING1,1
         JNE CHECKDOWN
-        DEC BIRDWING
-        call DRAW_BIRDDOWN_BACKGROUND
+        DEC BIRDWING1
+        call DRAW_BIRDDOWN1_BACKGROUND
         SUB BIRD1_X,10
         DRAW_MOIVNG_OBJECT birdup birdupBackGround birdupSize Bird1_Y Bird1_X
         JMP NOCHANGE
 CHECKDOWN:
-        INC BIRDWING
-        call DRAW_BIRDUP_BACKGROUND
+        INC BIRDWING1
+        call DRAW_BIRDUP1_BACKGROUND
         SUB BIRD1_X,10
         DRAW_MOIVNG_OBJECT birddown birddownBackGround birddownSize Bird1_Y Bird1_X
 NOCHANGE:
         POP DX
         POP CX
         POP AX
-ENDM DRAW_BIRD
+ENDM DRAW_BIRD1
+DRAW_BIRD2  MACRO 
+        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND
+        PUSH AX
+        PUSH CX
+        PUSH DX
+        CMP BIRD2_MOVING,0
+        JNE CHECKEND
+        JMP FAR PTR NOCHANGE
+CHECKEND:
+        CMP BIRD2_X,0
+        JNE CHECKSPEED
+        MOV BIRD2_MOVING,0
+        CALL MINI_GAME_MOVING
+        call DRAW_BIRDUP2_BACKGROUND
+        CALL DRAW_BIRDDOWN2_BACKGROUND
+        call DRAW_PLAYER2_BACKGROUND
+        mov Bird2_X,300
+        cmp BULLET2_MOVING,1
+        jne CHECKSPEED
+        call DRAW_BULLET2_BACKGROUND
+CHECKSPEED:
+        MOV AX,TIME
+        MOV CX,BIRD_SPEED
+        DIV CX
+        CMP DX,0
+        JE SHIFT
+        JMP FAR PTR NOCHANGE
+SHIFT:
+        CMP BIRDWING2,1
+        JNE CHECKDOWN
+        DEC BIRDWING2
+        call DRAW_BIRDDOWN2_BACKGROUND
+        SUB BIRD2_X,10
+        DRAW_MOIVNG_OBJECT birdup birdupBackGround birdupSize Bird2_Y Bird2_X
+        JMP NOCHANGE
+CHECKDOWN:
+        INC BIRDWING2
+        call DRAW_BIRDUP2_BACKGROUND
+        SUB BIRD2_X,10
+        DRAW_MOIVNG_OBJECT birddown birddownBackGround birddownSize Bird2_Y Bird2_X
+NOCHANGE:
+        POP DX
+        POP CX
+        POP AX
+ENDM DRAW_BIRD2
 ;=============================================================================== 
 CONSUMEBUFFER MACRO 
         PUSH AX
@@ -240,44 +348,94 @@ ENDM CONSUMEBUFFER
 ;========================================================================
 ;This macro checks the buttons and take a certian action correspondingly
 ;========================================================================
-DRAW_PLAYER MACRO Y , X ,KEY
+DRAW_PLAYER1 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
                 CMP KEY,75 ;LEFT
                 JNE ISRIGHT
                 CONSUMEBUFFER
-                CALL DRAW_PLAYER_BACKGROUND
+                CMP X,300
+                JBE NOCHANGE
+                CALL DRAW_PLAYER1_BACKGROUND
                 SUB X,10
                 JMP DRAW        
         ISRIGHT:
                 CMP KEY,77 ;RIGHT
                 JNE ISUP
                 CONSUMEBUFFER
-                CALL DRAW_PLAYER_BACKGROUND
+                CMP X,575
+                JAE NOCHANGE
+                CALL DRAW_PLAYER1_BACKGROUND
                 ADD X,10
                 JMP DRAW  
         ISUP:
                 CMP KEY,72 ;UP
                 JNE ISDOWN
                 CONSUMEBUFFER
-                CALL DRAW_PLAYER_BACKGROUND
+                CMP Y,50
+                JBE NOCHANGE
+                CALL DRAW_PLAYER1_BACKGROUND
                 SUB Y,10 
                 JMP DRAW 
         ISDOWN:
                 CMP KEY,80 ;DOWN
                 JNE NOCHANGE
                 CONSUMEBUFFER
-                CALL DRAW_PLAYER_BACKGROUND
+                CMP Y,300
+                JAE NOCHANGE
+                CALL DRAW_PLAYER1_BACKGROUND
                 ADD Y,10 
         DRAW:     
-                DRAW_MOIVNG_OBJECT shooter shooterBackground shooterSize P1_Y P1_X      
+                DRAW_MOIVNG_OBJECT shooter shooter1Background shooterSize P1_Y P1_X      
         NOCHANGE:
 
-ENDM DRAW_PLAYER 
-DRAW_BULLET MACRO KEY
-        LOCAL NOCHANGE,DRAW,CHECKSPACE,CHECKMOVING
+ENDM DRAW_PLAYER1 
+DRAW_PLAYER2 MACRO Y , X ,KEY
+        LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
+                CMP KEY,30 ;LEFT
+                JNE ISRIGHT
+                CONSUMEBUFFER
+                CMP X,0
+                JBE NOCHANGE
+                CALL DRAW_PLAYER2_BACKGROUND
+                SUB X,10
+                JMP DRAW        
+        ISRIGHT:
+                CMP KEY,32 ;RIGHT
+                JNE ISUP
+                CONSUMEBUFFER
+                CMP X,275
+                JAE NOCHANGE
+                CALL DRAW_PLAYER2_BACKGROUND
+                ADD X,10
+                JMP DRAW  
+        ISUP:
+                CMP KEY,17 ;UP
+                JNE ISDOWN
+                CONSUMEBUFFER
+                CMP Y,50
+                JBE NOCHANGE
+                CALL DRAW_PLAYER2_BACKGROUND
+                SUB Y,10 
+                JMP DRAW 
+        ISDOWN:
+                CMP KEY,31 ;DOWN
+                JNE NOCHANGE
+                CONSUMEBUFFER
+                CMP Y,300
+                JAE NOCHANGE
+                CALL DRAW_PLAYER2_BACKGROUND
+                ADD Y,10 
+        DRAW:     
+                DRAW_MOIVNG_OBJECT shooter shooter2Background shooterSize P2_Y P2_X      
+        NOCHANGE:
+
+ENDM DRAW_PLAYER2
+DRAW_BULLET1 MACRO KEY
+        LOCAL NOCHANGE,CHECKFINISH,CHECKSPACE,CHECKMOVING,UNHIT
         PUSH AX
         PUSH CX
         PUSH DX
+        PUSH SI
                 CMP KEY,57 ;Space
                 JNE CHECKFINISH
                 CONSUMEBUFFER
@@ -290,12 +448,28 @@ DRAW_BULLET MACRO KEY
                 MOV DX,P1_Y
                 MOV BULLET1_Y,DX
                 SUB BULLET1_Y,20
-                DRAW_MOIVNG_OBJECT bullet bulletBackground bulletSize Bullet1_Y Bullet1_X 
+                DRAW_MOIVNG_OBJECT bullet bullet1Background bulletSize Bullet1_Y Bullet1_X 
         CHECKFINISH:
-                CMP BULLET1_Y,10
+                CMP BULLET1_Y,20
                 JNE CHECKMOVING
                 MOV BULLET1_MOVING,0
-                CALL DRAW_BULLET_BACKGROUND
+                CALL DRAW_BULLET1_BACKGROUND
+                MOV SI,BIRD1_X
+                ADD SI,33
+                CMP BULLET1_X,SI
+                JAE UNHIT
+                MOV SI,BULLET1_X
+                ADD SI,15
+                CMP SI,Bird1_X
+                JBE UNHIT
+                CALL END_MINI_GAME_P1
+                call DRAW_BIRDUP1_BACKGROUND
+                CALL DRAW_BIRDDOWN1_BACKGROUND
+                CALL DRAW_PLAYER1_BACKGROUND
+                MOV BIRD1_MOVING,0
+                CALL MINI_GAME_MOVING
+                MOV Bird1_X,600
+        UNHIT:
                 MOV DX,P1_Y
                 MOV BULLET1_Y,DX
                 JMP NOCHANGE
@@ -307,15 +481,77 @@ DRAW_BULLET MACRO KEY
                 DIV CX
                 CMP DX,0
                 JNE NOCHANGE
-                CALL DRAW_BULLET_BACKGROUND
+                CALL DRAW_BULLET1_BACKGROUND
                 SUB BULLET1_Y,10
-                DRAW_MOIVNG_OBJECT bullet bulletBackground bulletSize Bullet1_Y Bullet1_X      
+                DRAW_MOIVNG_OBJECT bullet bullet1Background bulletSize Bullet1_Y Bullet1_X      
 
         NOCHANGE:
+        POP SI
         POP DX
         POP CX
         POP AX
-ENDM DRAW_BULLET
+ENDM DRAW_BULLET1
+DRAW_BULLET2 MACRO KEY
+        LOCAL NOCHANGE,CHECKFINISH,CHECKSPACE,CHECKMOVING,UNHIT
+        PUSH AX
+        PUSH CX
+        PUSH DX
+        PUSH SI
+                CMP KEY,28 ;P
+                JNE CHECKFINISH
+                CONSUMEBUFFER
+                CMP BULLET2_MOVING,0
+                JNE CHECKFINISH
+                MOV BULLET2_MOVING,1
+                MOV DX,P2_X
+                ADD DX,10
+                MOV BULLET2_X,DX
+                MOV DX,P2_Y
+                MOV BULLET2_Y,DX
+                SUB BULLET2_Y,20
+                DRAW_MOIVNG_OBJECT bullet bullet2Background bulletSize Bullet2_Y Bullet2_X 
+        CHECKFINISH:
+                CMP BULLET2_Y,20
+                JNE CHECKMOVING
+                MOV BULLET2_MOVING,0
+                CALL DRAW_BULLET2_BACKGROUND
+                MOV SI,BIRD2_X
+                ADD SI,33
+                CMP BULLET2_X,SI
+                JAE UNHIT
+                MOV SI,BULLET2_X
+                ADD SI,15
+                CMP SI,Bird2_X
+                JBE UNHIT
+                CALL END_MINI_GAME_P2
+                call DRAW_BIRDUP2_BACKGROUND
+                CALL DRAW_BIRDDOWN2_BACKGROUND
+                CALL DRAW_PLAYER2_BACKGROUND
+                MOV BIRD2_MOVING,0
+                CALL MINI_GAME_MOVING
+                MOV Bird2_X,300
+        UNHIT:
+                MOV DX,P2_Y
+                MOV BULLET2_Y,DX
+                JMP NOCHANGE
+        CHECKMOVING:
+                CMP BULLET2_MOVING,1
+                JNE NOCHANGE
+                MOV AX,TIME
+                MOV CX,BULLET_SPEED
+                DIV CX
+                CMP DX,0
+                JNE NOCHANGE
+                CALL DRAW_BULLET2_BACKGROUND
+                SUB BULLET2_Y,10
+                DRAW_MOIVNG_OBJECT bullet bullet2Background bulletSize Bullet2_Y Bullet2_X      
+
+        NOCHANGE:
+        POP SI
+        POP DX
+        POP CX
+        POP AX
+ENDM DRAW_BULLET2
 ;===============================================================================
 DRAW_BACKGROUND MACRO
         LOCAL OUTER,INNER
@@ -343,79 +579,7 @@ DRAW_BACKGROUND MACRO
         POP DX
         POP CX
 ENDM DRAW_BACKGROUND        
-;=================================================
-PRINT_4_DIGIT_GRAPHICS  MACRO   X, Y, NUMBER, COLOR
-        LOCAL REPEAT
-        PUSH AX
-        PUSH BX
-        PUSH CX
-        PUSH DI
-        ;================
-        CONVERT_4_DIGITS_TO_STRING NUMBER, STR_TEMP
-        LEA DI,STR_TEMP
 
-        MOV AH,0EH
-        XOR BX,BX       ; PAGE 0
-        MOV BL,COLOR
-
-        MOVE_CURSOR X, Y
-
-        MOV CX,4
-        REPEAT:
-                MOV AL,[DI]
-                INC DI
-                INT 10H
-                LOOP REPEAT
-        ;================
-        POP DI
-        POP CX
-        POP BX
-        POP AX
-ENDM    PRINT_4_DIGIT_GRAPHICS
-;=================================================
-MOVE_CURSOR     MACRO X, Y
-        PUSH AX
-        PUSH DX
-        ;================
-        MOV AH,02H
-        MOV DL,X
-        MOV DH,Y
-        INT 10H
-        ;================
-        POP DX
-        POP AX
-ENDM    MOVE_CURSOR 
-;=================================================
-CONVERT_4_DIGITS_TO_STRING    MACRO   NUMBER, STRING_PTR
-        LOCAL REPEAT
-        PUSH AX
-        PUSH BX
-        PUSH DX
-        PUSH DI
-        ;================
-        MOV AX,NUMBER
-
-        LEA DI,STRING_PTR
-        ADD DI,3
-
-        MOV CX,4
-        REPEAT:
-                MOV DX,0
-
-                MOV BX,10
-                DIV BX
-
-                ADD DX,'0'
-
-                MOV [DI],DL
-                DEC DI
-                LOOP REPEAT
-        ;================
-        POP DI
-        POP DX
-        POP BX
-        POP AX
-ENDM    CONVERT_4_DIGITS_TO_STRING
 ;=================================================
 MAIN    PROC    FAR
         MOV AX,@DATA
@@ -427,70 +591,198 @@ MAIN    PROC    FAR
         INT 10H
         ;==================
         DRAW_BACKGROUND
-        DRAW_MOIVNG_OBJECT shooter shooterBackground shooterSize P1_Y P1_X
-        PRINT_4_DIGIT_GRAPHICS 22, 10, CX, RED
 
 
+
+        ;CALL GENERATE_RANDOM
         ;==================
 MAINLOOP:
-        mov ah,1
-        int 16h
+
+NEXT:
         INC TIME
         CMP TIME,0FFFFh
         JNE  Continue
         MOV TIME,0
 Continue:
-        DRAW_PLAYER P1_Y P1_X AH
-        DRAW_BULLET AH
-        DRAW_BIRD
+        CALL MINI_GAME
         JMP MAINLOOP
         ;==================
         RET
 MAIN    ENDP
+;===================================================================
+; The Bird game proc
+;===================================================================
+MINI_GAME PROC 
+        CMP GAME_MOVING,1
+        JE GAMEISMOVING
+        CALL GENERATE_RANDOM
+        CMP RANDOM0_99,88
+        JE GAMENOTMOVING
+        RET
+GAMENOTMOVING:
+        MOV GAME_MOVING,1
+        MOV BIRD1_MOVING,1
+        MOV BIRD2_MOVING,1
+        DRAW_MOIVNG_OBJECT shooter shooter1Background shooterSize P1_Y P1_X
+        DRAW_MOIVNG_OBJECT shooter shooter2Background shooterSize P2_Y P2_X
+
+GAMEISMOVING:
+        mov ah,1
+        int 16h
+        CMP BIRD1_MOVING,0
+        JE CONTINUE_P2
+CONTINUE_P1:
+        DRAW_PLAYER1 P1_Y P1_X AH
+        DRAW_BULLET1 AH
+        DRAW_BIRD1
+CONTINUE_P2:
+        CMP BIRD2_MOVING,0
+        JE SKIPPING
+        mov ah,1
+        int 16h
+        DRAW_PLAYER2 P2_Y P2_X AH
+        DRAW_BULLET2 AH
+        DRAW_BIRD2
+SKIPPING:
+        RET
+ENDP MINI_GAME
+;=========================================================================
+; END_MINI_GAME
+;=========================================================================
+END_MINI_GAME_P1 PROC
+        CMP RANDOM0_4,0
+        JNE CHECK1RANDOM1
+        INC HIT_P1_1
+        RET
+CHECK1RANDOM1:        
+        CMP RANDOM0_4,1
+        JNE CHECK1RANDOM2
+        INC HIT_P1_2
+        RET
+CHECK1RANDOM2:        
+        CMP RANDOM0_4,2
+        JNE CHECK1RANDOM3
+        INC HIT_P1_3
+        RET
+CHECK1RANDOM3:
+        CMP RANDOM0_4,3
+        JNE CHECK1RANDOM4
+        INC HIT_P1_4
+        RET
+CHECK1RANDOM4:
+        CMP RANDOM0_4,4
+        INC HIT_P1_5
+        RET
+ENDP END_MINI_GAME_P1
+END_MINI_GAME_P2 PROC
+        CMP RANDOM0_4,0
+        JNE CHECK2RANDOM1
+        INC HIT_P2_1
+        RET
+CHECK2RANDOM1:        
+        CMP RANDOM0_4,1
+        JNE CHECK2RANDOM2
+        INC HIT_P2_2
+        RET
+CHECK2RANDOM2:        
+        CMP RANDOM0_4,2
+        JNE CHECK2RANDOM3
+        INC HIT_P2_3
+        RET
+CHECK2RANDOM3:
+        CMP RANDOM0_4,3
+        JNE CHECK2RANDOM4
+        INC HIT_P2_4
+        RET
+CHECK2RANDOM4:
+        CMP RANDOM0_4,4
+        INC HIT_P2_5
+        RET
+ENDP END_MINI_GAME_P2         
 ;======================================================================================================================================
 ; Draw the previos background of the shooter
 ;======================================================================================================================================
-DRAW_PLAYER_BACKGROUND PROC NEAR
+DRAW_PLAYER1_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
         PUSH DI
         PUSH BX
         PUSH AX
                 mov ah, 0ch
-                mov bx,  offset shooterBackGround
-whileshooterBackGround:
+                mov bx,  offset shooter1BackGround
+whileshooter1BackGround:
                 drawPNG [bx], [bx+1], [bx+2],  P1_Y, P1_X
                 add bx, 3
-                cmp bx, offset shooterBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
-                JNE whileshooterBackGround
+                cmp bx, offset shooter1BackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whileshooter1BackGround
         POP AX
         POP BX
         POP DI
         POP DX
         POP CX
         RET
-DRAW_PLAYER_BACKGROUND ENDP
-DRAW_BULLET_BACKGROUND PROC NEAR
+DRAW_PLAYER1_BACKGROUND ENDP
+DRAW_PLAYER2_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
         PUSH DI
         PUSH BX
         PUSH AX
                 mov ah, 0ch
-                mov bx,  offset bulletBackGround
-whilebulletBackGround:
-                drawPNG [bx], [bx+1], [bx+2],  Bullet1_Y, Bullet1_X
+                mov bx,  offset shooter2BackGround
+whileshooter2BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  P2_Y, P2_X
                 add bx, 3
-                cmp bx, offset bulletBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
-                JNE whilebulletBackGround
+                cmp bx, offset shooter2BackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whileshooter2BackGround
         POP AX
         POP BX
         POP DI
         POP DX
         POP CX
         RET
-DRAW_BULLET_BACKGROUND ENDP
-DRAW_BIRDUP_BACKGROUND PROC NEAR
+DRAW_PLAYER2_BACKGROUND ENDP
+DRAW_BULLET1_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                mov ah, 0ch
+                mov bx,  offset bullet1BackGround
+whilebullet1BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  Bullet1_Y, Bullet1_X
+                add bx, 3
+                cmp bx, offset bullet1BackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whilebullet1BackGround
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_BULLET1_BACKGROUND ENDP
+DRAW_BULLET2_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                mov ah, 0ch
+                mov bx,  offset bullet2BackGround
+whilebullet2BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  Bullet2_Y, Bullet2_X
+                add bx, 3
+                cmp bx, offset bullet2BackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whilebullet2BackGround
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_BULLET2_BACKGROUND ENDP
+DRAW_BIRDUP1_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
         PUSH DI
@@ -498,19 +790,19 @@ DRAW_BIRDUP_BACKGROUND PROC NEAR
         PUSH AX
                 mov ah, 0ch
                 mov bx,  offset birdupBackGround
-whilebirdupBackGround:
+whilebirdup1BackGround:
                 drawPNG [bx], [bx+1], [bx+2],  Bird1_Y, Bird1_X
                 add bx, 3
                 cmp bx, offset birdupBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
-                JNE whilebirdupBackGround
+                JNE whilebirdup1BackGround
         POP AX
         POP BX
         POP DI
         POP DX
         POP CX
         RET
-DRAW_BIRDUP_BACKGROUND ENDP
-DRAW_BIRDDOWN_BACKGROUND PROC NEAR
+DRAW_BIRDUP1_BACKGROUND ENDP
+DRAW_BIRDDOWN1_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
         PUSH DI
@@ -518,16 +810,103 @@ DRAW_BIRDDOWN_BACKGROUND PROC NEAR
         PUSH AX
                 mov ah, 0ch
                 mov bx,  offset birddownBackGround
-whilebirddownBackGround:
+whilebirddown1BackGround:
                 drawPNG [bx], [bx+1], [bx+2],  Bird1_Y, Bird1_X
                 add bx, 3
                 cmp bx, offset birddownBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
-                JNE whilebirddownBackGround
+                JNE whilebirddown1BackGround
         POP AX
         POP BX
         POP DI
         POP DX
         POP CX
         RET
-DRAW_BIRDDOWN_BACKGROUND ENDP
+DRAW_BIRDDOWN1_BACKGROUND ENDP
+DRAW_BIRDUP2_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                mov ah, 0ch
+                mov bx,  offset birdupBackGround
+whilebirdup2BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  Bird2_Y, Bird2_X
+                add bx, 3
+                cmp bx, offset birdupBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whilebirdup2BackGround
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_BIRDUP2_BACKGROUND ENDP
+DRAW_BIRDDOWN2_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                mov ah, 0ch
+                mov bx,  offset birddownBackGround
+whilebirddown2BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  Bird2_Y, Bird2_X
+                add bx, 3
+                cmp bx, offset birddownBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whilebirddown2BackGround
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_BIRDDOWN2_BACKGROUND ENDP
+MINI_GAME_MOVING PROC
+        CMP BIRD1_MOVING,0
+        JE @@NEXT
+        RET
+@@NEXT:
+        CMP BIRD2_MOVING,0
+        JE @@STOP
+        RET
+@@STOP:
+        MOV GAME_MOVING,0
+        RET
+MINI_GAME_MOVING ENDP
+GENERATE_RANDOM PROC 
+        PUSH AX
+        PUSH BX
+        PUSH DX
+        PUSH CX
+        MOV     AH, 00h   ; interrupt to get system timer in CX:DX 
+        INT     1AH
+        mov     [SEED], dx
+        call    CalcNew   ; -> AX is a random number
+        xor     dx, dx
+        mov     cx, 5    
+        div     cx        ; here dx contains the remainder - from 0 to 5
+        MOV RANDOM0_4,DX
+        call    CalcNew   ; -> AX is a random number
+        xor     dx, dx
+        mov     cx, 100    
+        div     cx        ; here dx contains the remainder - from 0 to 5
+        MOV RANDOM0_99,DX
+        POP CX
+        POP DX
+        POP BX
+        POP AX
+        ret
+ENDP GENERATE_RANDOM
+; ----------------
+; inputs: none  (modifies PRN seed variable)
+; clobbers: DX.  returns: AX = next random number
+CalcNew PROC 
+    mov     ax, 25173          ; LCG Multiplier
+    mul     word ptr [SEED]     ; DX:AX = LCG multiplier * seed
+    add     ax, 13849          ; Add LCG increment value
+    ; Modulo 65536, AX = (multiplier*seed+increment) mod 65536
+    mov     [SEED], ax          ; Update seed = return value
+    ret
+ENDP CalcNew
 END      MAIN
