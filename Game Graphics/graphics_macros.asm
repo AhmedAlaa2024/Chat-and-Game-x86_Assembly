@@ -453,13 +453,6 @@ PLAYER_1_UPDATE_FLAGS_REPRESENTATION    PROC
 ENDP    PLAYER_1_UPDATE_FLAGS_REPRESENTATION
 ;===================================================================
 DRAW_PLAYER_1 PROC
-        PUSH AX
-        PUSH BX
-        PUSH CX
-        PUSH DX
-        PUSH DI
-        PUSH SI
-        PUSH BP
         ; Draw Power Ups
         DRAW_BOX 407, 500, 325, 45, BLACK
 
