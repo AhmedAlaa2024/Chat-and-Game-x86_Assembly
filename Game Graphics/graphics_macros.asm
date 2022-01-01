@@ -159,6 +159,18 @@ PLAYER_2_Z_FLAG_VALUE          DB       1
 PLAYER_2_S_FLAG_VALUE          DB       1
 PLAYER_2_O_FLAG_VALUE          DB       0
 ;===========================================
+HIT_P1_1                       DB       5
+HIT_P1_2                       DB       6
+HIT_P1_3                       DB       7
+HIT_P1_4                       DB       8
+HIT_P1_5                       DB       9
+;===========================================
+HIT_P2_1                       DB       0
+HIT_P2_2                       DB       1
+HIT_P2_3                       DB       2
+HIT_P2_4                       DB       3
+HIT_P2_5                       DB       4
+;===========================================
         .CODE
 ;===================================================================
 DRAW_BACKGROUND MACRO    COLOR
@@ -252,14 +264,6 @@ MOVE_CURSOR     MACRO X, Y
 
         MOV DL,X
         MOV DH,Y
-
-        ; MOV DI,X
-        ; AND DI,00FFH
-        ; MOV DX,DI
-
-        ; MOV DI,Y
-        ; AND DI,0FF00H
-        ; OR  DX,DI
 
         INT 10H
         ;================
@@ -409,6 +413,27 @@ DISPLAY_FLAG_VALUE  MACRO   X, Y, FLAG, COLOR
         POP AX
 ENDM DISPLAY_FLAG_VALUE
 ;===================================================================
+PRINT_1_DIGIT_GRAPHICS  MACRO   X, Y, COLOR, NUMBER
+        PUSH AX
+        PUSH BX
+        PUSH DX
+        ;================
+        MOV AL, NUMBER
+        XOR BX,BX       ; PAGE 0
+        MOV BL,COLOR
+
+        MOVE_CURSOR X, Y
+
+        ADD AL,'0'
+
+        MOV AH,0EH
+        INT 10H
+        ;================
+        POP DX
+        POP BX
+        POP AX
+ENDM    PRINT_1_DIGIT_GRAPHICS
+;===================================================================
 PLAYER_1_UPDATE_REGISTERS_REPRESENTATION    PROC
         PRINT_4_DIGIT_GRAPHICS  60, 7, PLAYER_1_SCORE_VALUE, LIGHT_WHITE
         PRINT_4_DIGIT_GRAPHICS  60, 9, PLAYER_1_AX_VALUE, LIGHT_WHITE
@@ -451,6 +476,15 @@ PLAYER_1_UPDATE_FLAGS_REPRESENTATION    PROC
         DISPLAY_FLAG_VALUE  94, 25, PLAYER_1_O_FLAG_VALUE, BLUE
         RET
 ENDP    PLAYER_1_UPDATE_FLAGS_REPRESENTATION
+;===================================================================
+PLAYER_1_UPDATE_BIRD_SCORE      PROC
+        PRINT_1_DIGIT_GRAPHICS 55+0, 32, BLUE, HIT_P1_1
+        PRINT_1_DIGIT_GRAPHICS 55+10, 32, GREEN, HIT_P1_2
+        PRINT_1_DIGIT_GRAPHICS 55+20, 32, LIGHT_YELLOW, HIT_P1_3
+        PRINT_1_DIGIT_GRAPHICS 55+30, 32, RED, HIT_P1_4
+        PRINT_1_DIGIT_GRAPHICS 55+40, 32, LIGHT_WHITE, HIT_P1_5
+        RET
+ENDP    PLAYER_1_UPDATE_BIRD_SCORE
 ;===================================================================
 DRAW_PLAYER_1 PROC
         ; Draw Power Ups
@@ -568,9 +602,19 @@ DRAW_PLAYER_1 PROC
         CALL PLAYER_1_UPDATE_REGISTERS_REPRESENTATION
         CALL PLAYER_1_UPDATE_MEMORY_REPRESENTATION
         CALL PLAYER_1_UPDATE_FLAGS_REPRESENTATION
+        CALL PLAYER_1_UPDATE_BIRD_SCORE
         
         RET
 ENDP    DRAW_PLAYER_1
+;===================================================================
+PLAYER_2_UPDATE_BIRD_SCORE      PROC
+        PRINT_1_DIGIT_GRAPHICS 5+0, 32, BLUE, HIT_P2_1
+        PRINT_1_DIGIT_GRAPHICS 5+10, 32, GREEN, HIT_P2_2
+        PRINT_1_DIGIT_GRAPHICS 5+20, 32, LIGHT_YELLOW, HIT_P2_3
+        PRINT_1_DIGIT_GRAPHICS 5+30, 32, RED, HIT_P2_4
+        PRINT_1_DIGIT_GRAPHICS 5+40, 32, LIGHT_WHITE, HIT_P2_5
+        RET
+ENDP    PLAYER_2_UPDATE_BIRD_SCORE
 ;===================================================================
 PLAYER_2_UPDATE_REGISTERS_REPRESENTATION    PROC
         PRINT_4_DIGIT_GRAPHICS  10, 7, PLAYER_2_SCORE_VALUE, LIGHT_WHITE
@@ -731,6 +775,7 @@ DRAW_PLAYER_2 PROC
         CALL PLAYER_2_UPDATE_REGISTERS_REPRESENTATION
         CALL PLAYER_2_UPDATE_MEMORY_REPRESENTATION
         CALL PLAYER_2_UPDATE_FLAGS_REPRESENTATION
+        CALL PLAYER_2_UPDATE_BIRD_SCORE
         
         RET
 ENDP    DRAW_PLAYER_2

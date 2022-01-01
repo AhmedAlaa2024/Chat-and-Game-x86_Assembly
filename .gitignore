@@ -26,3 +26,6 @@ bin-release/
 # should NOT be excluded as they contain compiler settings and other important
 # information for Eclipse / Flash Builder.
 .vscode/
+.ASM015E_Run.bat
+.ASM015E_Debug.Bat
+.ASM105E.conf
