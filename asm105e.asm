@@ -8,17 +8,17 @@ include BirdData.inc
 include GUI_DATA.inc
 USERNAME_LENGTH EQU 14
 P1_USERNAME_BUFF DB USERNAME_LENGTH
-P1_USERNAME_SIZE DB 7
-NAME_1 DB 'PLAYER1$'
-;NAME_1 DB (USERNAME_LENGTH + 1) DUP('$')
+P1_USERNAME_SIZE DB 0
+;NAME_1 DB 'PLAYER1$'
+NAME_1 DB (USERNAME_LENGTH + 1) DUP('$')
 
 ;UNSIGNED 4-DIGIT NUMBER
 P1_INITIAL_POINTS DW 100
 
 P2_USERNAME_BUFF DB USERNAME_LENGTH
-P2_USERNAME_SIZE DB 7
-NAME_2 DB 'PLAYER2$'
-;NAME_2 DB (USERNAME_LENGTH + 1) DUP('$')
+P2_USERNAME_SIZE DB 0
+;NAME_2 DB 'PLAYER2$'
+NAME_2 DB (USERNAME_LENGTH + 1) DUP('$')
 
 ;UNSIGNED 4-DIGIT NUMBER
 P2_INITIAL_POINTS DW 80
@@ -50,7 +50,7 @@ P2_CHANGED_FORBIDDEN_CHAR DB 0
 
 PARSE_ERROR_FLAG DB 0
 FORBIDDEN_CHAR_ERROR_FLAG DB 0
-GAME_LEVEL DB 0
+GAME_LEVEL DB 1
 
 ;Main screen and selection screen data
 INCLUDE SCREENS.inc
@@ -587,7 +587,6 @@ drawPNG macro column,  row,  color,  Y,  X                 ;x,  y,  color...the 
             add cx,X
             int 10h
 endm drawPNG
-
 savePNG macro column,  row,  color,  Y,  X                 ;x,  y,  color...the last two parameters are the dynamic position of the pixel. Assumes that mov ah,  0ch was priorly done.
             mov AH,0Dh
             mov ch, 0                                                      ;Because all images are db arrays.                                                                             
@@ -600,7 +599,6 @@ savePNG macro column,  row,  color,  Y,  X                 ;x,  y,  color...the 
             int 10h
             mov color,al
 endm savePNG
-
 DRAW_MOIVNG_OBJECT MACRO img,imgB,imgSize,y,x ;imgB and img are the same width and hight
                 local while
         PUSH AX
@@ -626,26 +624,36 @@ while:
 ENDM DRAW_MOIVNG_OBJECT
 
 ;===============================================================================      
-DRAW_BIRD  MACRO 
-        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND
+DRAW_BIRD1  MACRO 
+        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND,CHECKBULLET2
         PUSH AX
         PUSH CX
         PUSH DX
-        CMP BIRD1_MOVING,0
+        CMP BIRD_MOVING,0
         JNE CHECKEND
         JMP FAR PTR NOCHANGE
 CHECKEND:
-        CMP BIRD1_X,300
+        CMP BIRD1_X,410
         JNE CHECKSPEED
-        MOV BIRD1_MOVING,0
-        MOV GAME_MOVING,0
-        call DRAW_BIRDUP_BACKGROUND
-        CALL DRAW_BIRDDOWN_BACKGROUND
-        call DRAW_PLAYER_BACKGROUND
-        mov Bird1_X,600
+        MOV BIRD_MOVING,0
+        CALL MINI_GAME_MOVING
+        call DRAW_BIRDUP1_BACKGROUND
+        CALL DRAW_BIRDDOWN1_BACKGROUND
+        call DRAW_PLAYER1_BACKGROUND
+        call DRAW_BIRDUP2_BACKGROUND
+        CALL DRAW_BIRDDOWN2_BACKGROUND
+        call DRAW_PLAYER2_BACKGROUND
+        mov Bird1_X,760
+        mov Bird2_X,360
         cmp BULLET1_MOVING,1
+        jne CHECKBULLET2
+        call DRAW_BULLET1_BACKGROUND
+        MOV BULLET1_MOVING,0
+CHECKBULLET2:
+        cmp BULLET2_MOVING,1
         jne CHECKSPEED
-        call DRAW_BULLET_BACKGROUND
+        call DRAW_BULLET2_BACKGROUND
+        MOV BULLET2_MOVING,0
 CHECKSPEED:
         MOV AX,TIME
         MOV CX,BIRD_SPEED
@@ -654,50 +662,102 @@ CHECKSPEED:
         JE SHIFT
         JMP FAR PTR NOCHANGE
 SHIFT:
-        CMP BIRDWING,1
+        CMP BIRDWING1,1
         JNE CHECKDOWN
-        DEC BIRDWING
-        call DRAW_BIRDDOWN_BACKGROUND
+        DEC BIRDWING1
+        call DRAW_BIRDDOWN1_BACKGROUND
         SUB BIRD1_X,10
         DRAW_MOIVNG_OBJECT birdup birdupBackGround birdupSize Bird1_Y Bird1_X
         JMP NOCHANGE
 CHECKDOWN:
-        INC BIRDWING
-        call DRAW_BIRDUP_BACKGROUND
+        INC BIRDWING1
+        call DRAW_BIRDUP1_BACKGROUND
         SUB BIRD1_X,10
         DRAW_MOIVNG_OBJECT birddown birddownBackGround birddownSize Bird1_Y Bird1_X
 NOCHANGE:
         POP DX
         POP CX
         POP AX
-ENDM DRAW_BIRD
+ENDM DRAW_BIRD1
+DRAW_BIRD2  MACRO 
+        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND,CHECKBULLET2
+        PUSH AX
+        PUSH CX
+        PUSH DX
+        CMP BIRD_MOVING,0
+        JNE CHECKEND
+        JMP FAR PTR NOCHANGE
+CHECKEND:
+        CMP BIRD2_X,10
+        JNE CHECKSPEED
+        MOV BIRD_MOVING,0
+        CALL MINI_GAME_MOVING
+        call DRAW_BIRDUP2_BACKGROUND
+        CALL DRAW_BIRDDOWN2_BACKGROUND
+        call DRAW_PLAYER2_BACKGROUND
+        mov Bird2_X,360
+        mov Bird1_X,760
+        cmp BULLET1_MOVING,1
+        jne CHECKBULLET2
+        call DRAW_BULLET1_BACKGROUND
+        MOV BULLET1_MOVING,0
+CHECKBULLET2:
+        cmp BULLET2_MOVING,1
+        jne CHECKSPEED
+        call DRAW_BULLET2_BACKGROUND
+        MOV BULLET2_MOVING,0
+CHECKSPEED:
+        MOV AX,TIME
+        MOV CX,BIRD_SPEED
+        DIV CX
+        CMP DX,0
+        JE SHIFT
+        JMP FAR PTR NOCHANGE
+SHIFT:
+        CMP BIRDWING2,1
+        JNE CHECKDOWN
+        DEC BIRDWING2
+        call DRAW_BIRDDOWN2_BACKGROUND
+        SUB BIRD2_X,10
+        DRAW_MOIVNG_OBJECT birdup birdupBackGround birdupSize Bird2_Y Bird2_X
+        JMP NOCHANGE
+CHECKDOWN:
+        INC BIRDWING2
+        call DRAW_BIRDUP2_BACKGROUND
+        SUB BIRD2_X,10
+        DRAW_MOIVNG_OBJECT birddown birddownBackGround birddownSize Bird2_Y Bird2_X
+NOCHANGE:
+        POP DX
+        POP CX
+        POP AX
+ENDM DRAW_BIRD2
 ;=============================================================================== 
 CONSUMEBUFFER MACRO 
         PUSH AX
-        mov ah, 0 ;CONSUME BUFFER
+        mov ah,0;CONSUME BUFFER
         int 16h      
         POP AX
 ENDM CONSUMEBUFFER
 ;========================================================================
 ;This macro checks the buttons and take a certian action correspondingly
 ;========================================================================
-DRAW_PLAYER MACRO Y , X ,KEY
+DRAW_PLAYER1 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
                 CMP KEY,75 ;LEFT
                 JNE ISRIGHT
                 CONSUMEBUFFER
-                CMP X,300
+                CMP X,400
                 JBE NOCHANGE
-                CALL DRAW_PLAYER_BACKGROUND
+                CALL DRAW_PLAYER1_BACKGROUND
                 SUB X,10
                 JMP DRAW        
         ISRIGHT:
                 CMP KEY,77 ;RIGHT
                 JNE ISUP
                 CONSUMEBUFFER
-                CMP X,575
+                CMP X,770
                 JAE NOCHANGE
-                CALL DRAW_PLAYER_BACKGROUND
+                CALL DRAW_PLAYER1_BACKGROUND
                 ADD X,10
                 JMP DRAW  
         ISUP:
@@ -706,7 +766,7 @@ DRAW_PLAYER MACRO Y , X ,KEY
                 CONSUMEBUFFER
                 CMP Y,50
                 JBE NOCHANGE
-                CALL DRAW_PLAYER_BACKGROUND
+                CALL DRAW_PLAYER1_BACKGROUND
                 SUB Y,10 
                 JMP DRAW 
         ISDOWN:
@@ -715,16 +775,56 @@ DRAW_PLAYER MACRO Y , X ,KEY
                 CONSUMEBUFFER
                 CMP Y,300
                 JAE NOCHANGE
-                CALL DRAW_PLAYER_BACKGROUND
+                CALL DRAW_PLAYER1_BACKGROUND
                 ADD Y,10 
         DRAW:     
-                DRAW_MOIVNG_OBJECT shooter shooterBackground shooterSize P1_Y P1_X      
+                DRAW_MOIVNG_OBJECT shooter shooter1Background shooterSize P1_Y P1_X      
         NOCHANGE:
 
-ENDM DRAW_PLAYER
+ENDM DRAW_PLAYER1 
+DRAW_PLAYER2 MACRO Y , X ,KEY
+        LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
+                CMP KEY,30 ;LEFT
+                JNE ISRIGHT
+                CONSUMEBUFFER
+                CMP X,0
+                JBE NOCHANGE
+                CALL DRAW_PLAYER2_BACKGROUND
+                SUB X,10
+                JMP DRAW        
+        ISRIGHT:
+                CMP KEY,32 ;RIGHT
+                JNE ISUP
+                CONSUMEBUFFER
+                CMP X,375
+                JAE NOCHANGE
+                CALL DRAW_PLAYER2_BACKGROUND
+                ADD X,10
+                JMP DRAW  
+        ISUP:
+                CMP KEY,17 ;UP
+                JNE ISDOWN
+                CONSUMEBUFFER
+                CMP Y,50
+                JBE NOCHANGE
+                CALL DRAW_PLAYER2_BACKGROUND
+                SUB Y,10 
+                JMP DRAW 
+        ISDOWN:
+                CMP KEY,31 ;DOWN
+                JNE NOCHANGE
+                CONSUMEBUFFER
+                CMP Y,300
+                JAE NOCHANGE
+                CALL DRAW_PLAYER2_BACKGROUND
+                ADD Y,10 
+        DRAW:     
+                DRAW_MOIVNG_OBJECT shooter shooter2Background shooterSize P2_Y P2_X      
+        NOCHANGE:
 
-DRAW_BULLET MACRO KEY
-        LOCAL NOCHANGE,DRAW,CHECKSPACE,CHECKMOVING,UNHIT,START
+ENDM DRAW_PLAYER2
+DRAW_BULLET1 MACRO KEY
+        LOCAL NOCHANGE,CHECKFINISH,CHECKSPACE,CHECKMOVING,UNHIT
         PUSH AX
         PUSH CX
         PUSH DX
@@ -736,17 +836,17 @@ DRAW_BULLET MACRO KEY
                 JNE CHECKFINISH
                 MOV BULLET1_MOVING,1
                 MOV DX,P1_X
-                ADD DX,10
+                ADD DX,5
                 MOV BULLET1_X,DX
                 MOV DX,P1_Y
                 MOV BULLET1_Y,DX
                 SUB BULLET1_Y,20
-                DRAW_MOIVNG_OBJECT bullet bulletBackground bulletSize Bullet1_Y Bullet1_X 
+                DRAW_MOIVNG_OBJECT bullet bullet1Background bulletSize Bullet1_Y Bullet1_X 
         CHECKFINISH:
                 CMP BULLET1_Y,20
                 JNE CHECKMOVING
                 MOV BULLET1_MOVING,0
-                CALL DRAW_BULLET_BACKGROUND
+                CALL DRAW_BULLET1_BACKGROUND
                 MOV SI,BIRD1_X
                 ADD SI,33
                 CMP BULLET1_X,SI
@@ -756,12 +856,20 @@ DRAW_BULLET MACRO KEY
                 CMP SI,Bird1_X
                 JBE UNHIT
                 CALL END_MINI_GAME_P1
-                call DRAW_BIRDUP_BACKGROUND
-                CALL DRAW_BIRDDOWN_BACKGROUND
-                CALL DRAW_PLAYER_BACKGROUND
-                MOV BIRD1_MOVING,0
-                MOV GAME_MOVING,0
-                MOV Bird1_X,600
+                call DRAW_BIRDUP1_BACKGROUND
+                CALL DRAW_BIRDDOWN1_BACKGROUND
+                call DRAW_BIRDUP2_BACKGROUND
+                CALL DRAW_BIRDDOWN2_BACKGROUND
+                CALL DRAW_PLAYER1_BACKGROUND
+                CALL DRAW_PLAYER2_BACKGROUND
+                MOV BIRD_MOVING,0
+                CALL MINI_GAME_MOVING
+                MOV Bird1_X,760
+                MOV Bird2_X,360
+                cmp BULLET2_MOVING,1
+                jne UNHIT
+                call DRAW_BULLET2_BACKGROUND
+                MOV BULLET2_MOVING,0
         UNHIT:
                 MOV DX,P1_Y
                 MOV BULLET1_Y,DX
@@ -774,125 +882,286 @@ DRAW_BULLET MACRO KEY
                 DIV CX
                 CMP DX,0
                 JNE NOCHANGE
-                CALL DRAW_BULLET_BACKGROUND
+                CALL DRAW_BULLET1_BACKGROUND
                 SUB BULLET1_Y,10
-                DRAW_MOIVNG_OBJECT bullet bulletBackground bulletSize Bullet1_Y Bullet1_X      
+                DRAW_MOIVNG_OBJECT bullet bullet1Background bulletSize Bullet1_Y Bullet1_X      
 
         NOCHANGE:
         POP SI
         POP DX
         POP CX
         POP AX
-ENDM DRAW_BULLET
-;===============================================================================
-DRAW_BACKGROUND MACRO
-        LOCAL OUTER,INNER
+ENDM DRAW_BULLET1
+DRAW_BULLET2 MACRO KEY
+        LOCAL NOCHANGE,CHECKFINISH,CHECKSPACE,CHECKMOVING,UNHIT,CHECKBULLETMOVING
+        PUSH AX
         PUSH CX
         PUSH DX
-        PUSH BX
-        PUSH AX
-        MOV DX,0
-        MOV AL,0FH
-        MOV AH,0CH
+        PUSH SI
+                CMP KEY,28 ;P
+                JNE CHECKFINISH
+                CONSUMEBUFFER
+                CMP BULLET2_MOVING,0
+                JNE CHECKFINISH
+                MOV BULLET2_MOVING,1
+                MOV DX,P2_X
+                ADD DX,5
+                MOV BULLET2_X,DX
+                MOV DX,P2_Y
+                MOV BULLET2_Y,DX
+                SUB BULLET2_Y,20
+                DRAW_MOIVNG_OBJECT bullet bullet2Background bulletSize Bullet2_Y Bullet2_X 
+        CHECKFINISH:
+                CMP BULLET2_Y,20
+                JNE CHECKMOVING
+                MOV BULLET2_MOVING,0
+                CALL DRAW_BULLET2_BACKGROUND
+                MOV SI,BIRD2_X
+                ADD SI,33
+                CMP BULLET2_X,SI
+                JAE UNHIT
+                MOV SI,BULLET2_X
+                ADD SI,15
+                CMP SI,Bird2_X
+                JBE UNHIT
+                CALL END_MINI_GAME_P2
+                call DRAW_BIRDUP2_BACKGROUND
+                CALL DRAW_BIRDDOWN2_BACKGROUND
+                call DRAW_BIRDUP1_BACKGROUND
+                CALL DRAW_BIRDDOWN1_BACKGROUND
+                CALL DRAW_PLAYER2_BACKGROUND
+                CALL DRAW_PLAYER1_BACKGROUND
+                MOV BIRD_MOVING,0
+                CALL MINI_GAME_MOVING
+                MOV Bird2_X,360
+                MOV Bird1_X,760
+                cmp BULLET1_MOVING,1
+                jne UNHIT
+                call DRAW_BULLET1_BACKGROUND
+                MOV BULLET1_MOVING,0
+        UNHIT:
+                MOV DX,P2_Y
+                MOV BULLET2_Y,DX
+                JMP NOCHANGE
+        CHECKMOVING:
+                CMP BULLET2_MOVING,1
+                JNE NOCHANGE
+                MOV AX,TIME
+                MOV CX,BULLET_SPEED
+                DIV CX
+                CMP DX,0
+                JNE NOCHANGE
+                CALL DRAW_BULLET2_BACKGROUND
+                SUB BULLET2_Y,10
+                DRAW_MOIVNG_OBJECT bullet bullet2Background bulletSize Bullet2_Y Bullet2_X      
 
-        OUTER:
-                MOV CX,0
-        INNER:
-                INT 10h
-                INC CX
-                CMP CX,640
-                JNE INNER
-                INC DX
-                CMP DX,400
-                JNE OUTER
-
-        POP AX
-        POP BX
+        NOCHANGE:
+        POP SI
         POP DX
         POP CX
-ENDM DRAW_BACKGROUND        
-;=================================================
-MOVE_CURSOR     MACRO X, Y
-        PUSH AX
-        PUSH DX
-        ;================
-        MOV AH,02H
-        MOV DL,X
-        MOV DH,Y
-        INT 10H
-        ;================
-        POP DX
         POP AX
-ENDM    MOVE_CURSOR 
-;=================================================
-
+ENDM DRAW_BULLET2
+;===============================================================================
+;===================================================================
+; The Bird game proc
+;===================================================================
 MINI_GAME PROC 
         CMP GAME_MOVING,1
         JE GAMEISMOVING
         CALL GENERATE_RANDOM
         CMP RANDOM0_99,88
-        JE GAMENOTMOVING
+        JNE GAMENOTMOVING
         RET
 GAMENOTMOVING:
         MOV GAME_MOVING,1
-        MOV BIRD1_MOVING,1
-        DRAW_MOIVNG_OBJECT shooter shooterBackground shooterSize P1_Y P1_X
+        CALL DRAW_TARGET
+        MOV BIRD_MOVING,1
+        MOV BIRD_MOVING,1
+        DRAW_MOIVNG_OBJECT shooter shooter1Background shooterSize P1_Y P1_X
+        DRAW_MOIVNG_OBJECT shooter shooter2Background shooterSize P2_Y P2_X
+
 GAMEISMOVING:
         mov ah,1
         int 16h
-        CMP BIRD1_MOVING,0
-        JNE CONTINUE_P1
-        RET
+        CMP BIRD_MOVING,0
+        JE CONTINUE_P2
 CONTINUE_P1:
-        DRAW_PLAYER P1_Y P1_X AH
-        DRAW_BULLET AH
-        DRAW_BIRD
+        DRAW_PLAYER1 P1_Y P1_X AH
+        DRAW_BULLET1 AH
+        DRAW_BIRD1
+CONTINUE_P2:
+        CMP BIRD_MOVING,0
+        JE SKIPPING
+        mov ah,1
+        int 16h
+        DRAW_PLAYER2 P2_Y P2_X AH
+        DRAW_BULLET2 AH
+        DRAW_BIRD2
+SKIPPING:
         RET
 ENDP MINI_GAME
-
-DRAW_PLAYER_BACKGROUND PROC NEAR
+;===================================================================
+; END_MINI_GAME AND TARGET
+;===================================================================
+END_MINI_GAME_P1 PROC
+        CMP RANDOM0_4,0
+        JNE CHECK1RANDOM1
+        INC HIT_P1_1
+        RET
+CHECK1RANDOM1:        
+        CMP RANDOM0_4,1
+        JNE CHECK1RANDOM2
+        INC HIT_P1_2
+        RET
+CHECK1RANDOM2:        
+        CMP RANDOM0_4,2
+        JNE CHECK1RANDOM3
+        INC HIT_P1_3
+        RET
+CHECK1RANDOM3:
+        CMP RANDOM0_4,3
+        JNE CHECK1RANDOM4
+        INC HIT_P1_4
+        RET
+CHECK1RANDOM4:
+        CMP RANDOM0_4,4
+        INC HIT_P1_5
+        RET
+ENDP END_MINI_GAME_P1
+END_MINI_GAME_P2 PROC
+        CMP RANDOM0_4,0
+        JNE @@CHECK2RANDOM1
+        INC HIT_P2_1
+        RET
+@@CHECK2RANDOM1:        
+        CMP RANDOM0_4,1
+        JNE @@CHECK2RANDOM2
+        INC HIT_P2_2
+        RET
+@@CHECK2RANDOM2:        
+        CMP RANDOM0_4,2
+        JNE @@CHECK2RANDOM3
+        INC HIT_P2_3
+        RET
+@@CHECK2RANDOM3:
+        CMP RANDOM0_4,3
+        JNE @@CHECK2RANDOM4
+        INC HIT_P2_4
+        RET
+@@CHECK2RANDOM4:
+        CMP RANDOM0_4,4
+        INC HIT_P2_5
+        RET
+ENDP END_MINI_GAME_P2 
+SET_TAREGT_X PROC
+        CMP RANDOM0_4,0
+        JNE @@CHECK2RANDOM1
+        MOV HIT_X,31
+        RET
+@@CHECK2RANDOM1:        
+        CMP RANDOM0_4,1
+        JNE @@CHECK2RANDOM2
+        MOV HIT_X,111
+        RET
+@@CHECK2RANDOM2:        
+        CMP RANDOM0_4,2
+        JNE @@CHECK2RANDOM3
+        MOV HIT_X,191
+        RET
+@@CHECK2RANDOM3:
+        CMP RANDOM0_4,3
+        JNE @@CHECK2RANDOM4
+        MOV HIT_X,271
+        RET
+@@CHECK2RANDOM4:
+        CMP RANDOM0_4,4
+        MOV HIT_X,351
+        RET
+ENDP SET_TAREGT_X        
+;======================================================================================================================================
+; Draw the previos background of the shooter
+;======================================================================================================================================
+DRAW_PLAYER1_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
         PUSH DI
         PUSH BX
         PUSH AX
                 mov ah, 0ch
-                mov bx,  offset shooterBackGround
-whileshooterBackGround:
+                mov bx,  offset shooter1BackGround
+whileshooter1BackGround:
                 drawPNG [bx], [bx+1], [bx+2],  P1_Y, P1_X
                 add bx, 3
-                cmp bx, offset shooterBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
-                JNE whileshooterBackGround
+                cmp bx, offset shooter1BackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whileshooter1BackGround
         POP AX
         POP BX
         POP DI
         POP DX
         POP CX
         RET
-DRAW_PLAYER_BACKGROUND ENDP
-
-DRAW_BULLET_BACKGROUND PROC NEAR
+DRAW_PLAYER1_BACKGROUND ENDP
+DRAW_PLAYER2_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
         PUSH DI
         PUSH BX
         PUSH AX
                 mov ah, 0ch
-                mov bx,  offset bulletBackGround
-whilebulletBackGround:
-                drawPNG [bx], [bx+1], [bx+2],  Bullet1_Y, Bullet1_X
+                mov bx,  offset shooter2BackGround
+whileshooter2BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  P2_Y, P2_X
                 add bx, 3
-                cmp bx, offset bulletBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
-                JNE whilebulletBackGround
+                cmp bx, offset shooter2BackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whileshooter2BackGround
         POP AX
         POP BX
         POP DI
         POP DX
         POP CX
         RET
-DRAW_BULLET_BACKGROUND ENDP
-
-DRAW_BIRDUP_BACKGROUND PROC NEAR
+DRAW_PLAYER2_BACKGROUND ENDP
+DRAW_BULLET1_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                mov ah, 0ch
+                mov bx,  offset bullet1BackGround
+whilebullet1BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  Bullet1_Y, Bullet1_X
+                add bx, 3
+                cmp bx, offset bullet1BackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whilebullet1BackGround
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_BULLET1_BACKGROUND ENDP
+DRAW_BULLET2_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                mov ah, 0ch
+                mov bx,  offset bullet2BackGround
+whilebullet2BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  Bullet2_Y, Bullet2_X
+                add bx, 3
+                cmp bx, offset bullet2BackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whilebullet2BackGround
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_BULLET2_BACKGROUND ENDP
+DRAW_BIRDUP1_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
         PUSH DI
@@ -900,20 +1169,19 @@ DRAW_BIRDUP_BACKGROUND PROC NEAR
         PUSH AX
                 mov ah, 0ch
                 mov bx,  offset birdupBackGround
-whilebirdupBackGround:
+whilebirdup1BackGround:
                 drawPNG [bx], [bx+1], [bx+2],  Bird1_Y, Bird1_X
                 add bx, 3
                 cmp bx, offset birdupBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
-                JNE whilebirdupBackGround
+                JNE whilebirdup1BackGround
         POP AX
         POP BX
         POP DI
         POP DX
         POP CX
         RET
-DRAW_BIRDUP_BACKGROUND ENDP
-
-DRAW_BIRDDOWN_BACKGROUND PROC NEAR
+DRAW_BIRDUP1_BACKGROUND ENDP
+DRAW_BIRDDOWN1_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
         PUSH DI
@@ -921,19 +1189,129 @@ DRAW_BIRDDOWN_BACKGROUND PROC NEAR
         PUSH AX
                 mov ah, 0ch
                 mov bx,  offset birddownBackGround
-whilebirddownBackGround:
+whilebirddown1BackGround:
                 drawPNG [bx], [bx+1], [bx+2],  Bird1_Y, Bird1_X
                 add bx, 3
                 cmp bx, offset birddownBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
-                JNE whilebirddownBackGround
+                JNE whilebirddown1BackGround
         POP AX
         POP BX
         POP DI
         POP DX
         POP CX
         RET
-DRAW_BIRDDOWN_BACKGROUND ENDP
+DRAW_BIRDDOWN1_BACKGROUND ENDP
+DRAW_BIRDUP2_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                mov ah, 0ch
+                mov bx,  offset birdupBackGround
+whilebirdup2BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  Bird2_Y, Bird2_X
+                add bx, 3
+                cmp bx, offset birdupBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whilebirdup2BackGround
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_BIRDUP2_BACKGROUND ENDP
+DRAW_BIRDDOWN2_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+                mov ah, 0ch
+                mov bx,  offset birddownBackGround
+whilebirddown2BackGround:
+                drawPNG [bx], [bx+1], [bx+2],  Bird2_Y, Bird2_X
+                add bx, 3
+                cmp bx, offset birddownBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE whilebirddown2BackGround
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_BIRDDOWN2_BACKGROUND ENDP
+DRAW_TARGET PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
+        PUSH SI
+                CALL SET_TAREGT_X
+                MOV SI,HIT_X
+                ADD SI,400
+                mov ah, 0ch
+                mov bx,  offset target
+@@target:
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, HIT_X 
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, SI
+                add bx, 3
+                cmp bx, offset targetSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE @@target
+        POP SI
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_TARGET ENDP
+DRAW_TARGET_BACKGROUND PROC NEAR
+        PUSH CX
+        PUSH DX
+        PUSH DI
+        PUSH BX
+        PUSH AX
 
+                mov ah, 0ch
+                mov bx,  offset targetBackGround
+@@target:
+                ;BOX 1
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 31
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 111
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 191
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 271
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 351
+                ;BOX 2
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 431
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 511
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 591
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 671
+                drawPNG [bx], [bx+1], [bx+2], HIT_Y, 751
+                add bx, 3
+                cmp bx, offset targetBackGroundSize                                       ;Time to end the loop whenever the offset is outside the image.
+                JNE @@target
+        POP AX
+        POP BX
+        POP DI
+        POP DX
+        POP CX
+        RET
+DRAW_TARGET_BACKGROUND ENDP
+MINI_GAME_MOVING PROC
+        CMP BIRD_MOVING,0
+        JE @@NEXT
+        RET
+@@NEXT:
+        CMP BIRD_MOVING,0
+        JE @@STOP
+        RET
+@@STOP:
+        MOV GAME_MOVING,0
+        CALL DRAW_TARGET_BACKGROUND
+        RET
+MINI_GAME_MOVING ENDP
 GENERATE_RANDOM PROC 
         PUSH AX
         PUSH BX
@@ -949,7 +1327,7 @@ GENERATE_RANDOM PROC
         MOV RANDOM0_4,DX
         call    CalcNew   ; -> AX is a random number
         xor     dx, dx
-        mov     cx, 100    
+        mov     cx, 1000    
         div     cx        ; here dx contains the remainder - from 0 to 5
         MOV RANDOM0_99,DX
         POP CX
@@ -969,32 +1347,6 @@ CalcNew PROC
     mov     [SEED], ax          ; Update seed = return value
     ret
 ENDP CalcNew
-
-END_MINI_GAME_P1 PROC
-        CMP RANDOM0_4,0
-        JNE CHECKRANDOM1
-        INC HIT_P1_1
-        RET
-CHECKRANDOM1:        
-        CMP RANDOM0_4,1
-        JNE CHECKRANDOM2
-        INC HIT_P1_2
-        RET
-CHECKRANDOM2:        
-        CMP RANDOM0_4,2
-        JNE CHECKRANDOM3
-        INC HIT_P1_3
-        RET
-CHECKRANDOM3:
-        CMP RANDOM0_4,3
-        JNE CHECKRANDOM4
-        INC HIT_P1_4
-        RET
-CHECKRANDOM4:
-        CMP RANDOM0_4,4
-        INC HIT_P1_5
-        RET
-ENDP END_MINI_GAME_P1
 
 DRAW_BACKGROUND MACRO    COLOR
         LOCAL OUTER,INNER
@@ -1393,7 +1745,7 @@ DRAW_PLAYER_1 PROC
         DRAW_BOX 407, 450, 325, 45, BLACK
         PRINT_STRING 53, 29, NAME_1, GREEN
         MOV PLAYER_1_CMD_X_LOCATION, 54
-        MOV BL, NAME_1 - 1
+        MOV BL, P1_USERNAME_SIZE
         ADD PLAYER_1_CMD_X_LOCATION, BL
 
 
@@ -1467,10 +1819,6 @@ DRAW_PLAYER_1 PROC
         DRAW_LINE_V 529, 87, 48, RED
 
         ; Print the registers labels
-        TEST GAME_LEVEL , 1
-        JNZ @@REGISTERS
-        PRINT_STRING 51, 4, P1_FORBIDDEN_CHAR_MSG, RED
-        @@REGISTERS:
         PRINT_STRING 52, 7, PLAYER_1_SCORE_LABEL, GREEN
         PRINT_STRING 53, 9, PLAYER_1_AX_REG_LABEL, GREEN
         PRINT_STRING 53, 11, PLAYER_1_BX_REG_LABEL, GREEN
@@ -1626,7 +1974,7 @@ DRAW_PLAYER_2 PROC
         DRAW_BOX 10, 450, 325, 45, BLACK
         PRINT_STRING 4, 29, NAME_2, GREEN
         MOV PLAYER_2_CMD_X_LOCATION, 5
-        MOV BL, NAME_1 - 1
+        MOV BL, P2_USERNAME_SIZE
         ADD PLAYER_2_CMD_X_LOCATION, BL
 
         ; Draw Register box
@@ -1699,13 +2047,8 @@ DRAW_PLAYER_2 PROC
         DRAW_LINE_V 132, 87, 48, RED
 
         ; Print the registers labels
-        CALL SET_PROCCESSOR_MSG
-        PRINT_STRING 1, 3, PROCESSOR_MSG, LIGHT_YELLOW
   
-        TEST GAME_LEVEL, 1
-        JNZ @@REGISTERS
-        PRINT_STRING 1, 4, P2_FORBIDDEN_CHAR_MSG, RED
-        @@REGISTERS:
+        
         PRINT_STRING 2, 7, PLAYER_2_SCORE_LABEL, GREEN
         PRINT_STRING 3, 9, PLAYER_2_AX_REG_LABEL, GREEN
         PRINT_STRING 3, 11, PLAYER_2_BX_REG_LABEL, GREEN
@@ -1746,17 +2089,44 @@ DRAW_PLAYER_2 PROC
         CALL PLAYER_2_UPDATE_FLAGS_REPRESENTATION
         
         RET
-ENDP    DRAW_PLAYER_2
+DRAW_PLAYER_2 ENDP    
+
+UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION PROC NEAR
+    TEST GAME_LEVEL , 1
+    JNZ @@EXIT
+    PRINT_STRING 51, 4, P1_FORBIDDEN_CHAR_MSG, RED
+    PRINT_STRING 1, 4, P2_FORBIDDEN_CHAR_MSG, RED
+    @@EXIT:
+    RET
+UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION ENDP
+
+UPDATE_CURRENT_PROCESSOR_REPRESENTATION PROC NEAR
+    CALL SET_PROCCESSOR_MSG
+    PRINT_STRING 13, 3, PROCESSOR_CHARACTER, LIGHT_YELLOW
+    RET
+UPDATE_CURRENT_PROCESSOR_REPRESENTATION ENDP 
+
 
 EXECUTE_FIRST_POWER_UP PROC NEAR
+    TEST GAME_LEVEL, 1
+    JNZ @@LEVEL_2
+
     TEST POWER_UP_SELECTED_FLAG, 1
-    JZ @@EXECUTE
+    JZ @@LEVEL_1
     RET
-    @@EXECUTE:
+    @@LEVEL_2:
+    TEST CURR_PROCESSOR_FLAG, 00000001B
+    JNZ @@TOGGLE_2
+    MOV CURR_PROCESSOR_FLAG, 00000001B
+    RET
+    @@TOGGLE_2:
+    MOV CURR_PROCESSOR_FLAG, 00010000B
+    RET
+    @@LEVEL_1:
     PUSH AX
     MOV AX, 5
     CALL DESCREASE_CURRENT_PLAYER_SCORE
-    MOV POWER_UP_SELECTED_FLAG, 1   
+    MOV POWER_UP_SELECTED_FLAG, 1    
     MOV AL, CURR_PLAYER_FLAG
     TEST AL, 1
     JNZ @@PLAYER_PROCESSOR
@@ -1835,7 +2205,7 @@ EXECUTE_THIRD_POWER_UP PROC NEAR
     JNE @@EXIT 
     TEST POWER_UP_SELECTED_FLAG, 1
     JZ @@EXECUTE
-    RET
+    JMP @@LEAVE
     @@EXECUTE:
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2
@@ -1875,15 +2245,13 @@ EXECUTE_THIRD_POWER_UP PROC NEAR
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2_CMD_LOC
     MOV PLAYER_1_CMD_X_LOCATION, 54
-    MOV BL, NAME_1 - 1
+    MOV BL, P1_USERNAME_SIZE
     ADD PLAYER_1_CMD_X_LOCATION, BL 
     JMP @@CONTNIUE
     @@PLAYER2_CMD_LOC:
     MOV PLAYER_2_CMD_X_LOCATION, 5
-    MOV BL, NAME_2 - 1
-    ADD PLAYER_2_CMD_X_LOCATION, BL
-    
-    
+    MOV BL, P2_USERNAME_SIZE
+    ADD PLAYER_2_CMD_X_LOCATION, BL 
     @@CONTNIUE:    
 
     CALL GET_CURR_PLAYER_CMD_X_LOCATION
@@ -1900,6 +2268,8 @@ EXECUTE_THIRD_POWER_UP PROC NEAR
     LOOP @@CLEAR_CMD_BOX
 
     @@EXIT:
+    CALL UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION
+    @@LEAVE:
     POP SI
     POP CX 
     POP BX  
@@ -1918,12 +2288,12 @@ EXECUTE_CURRENT_COMMAND PROC NEAR
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2_CMD_LOC
     MOV PLAYER_1_CMD_X_LOCATION, 54
-    MOV BL, NAME_1 - 1
+    MOV BL, P1_USERNAME_SIZE
     ADD PLAYER_1_CMD_X_LOCATION, BL 
     JMP @@PLAYER1_CMD_LOC
     @@PLAYER2_CMD_LOC:
     MOV PLAYER_2_CMD_X_LOCATION, 5
-    MOV BL, NAME_2 - 1
+    MOV BL, P2_USERNAME_SIZE
     ADD PLAYER_2_CMD_X_LOCATION, BL
     @@PLAYER1_CMD_LOC:
        
@@ -2063,12 +2433,8 @@ CHECK_FORBIDDEN_CHARACTER PROC NEAR
 CHECK_FORBIDDEN_CHARACTER ENDP 
 
 WRITE_CMD PROC NEAR
-    
-    
-
     CMP AL, 13
     JNE @@NOT_ENTER
-    ; CHECK IF CONTAINING THE FORBIDDEN CHARACTER
 
     CALL EXECUTE_CURRENT_COMMAND
     RET
@@ -2143,29 +2509,31 @@ HANDLE_BUFFER PROC NEAR
     CMP AH, 59 ; F1 SCAN Code
     JNE @@SECOND_POWER_UP
     CALL EXECUTE_FIRST_POWER_UP 
-    RET
+    JMP @@RETURN
     @@SECOND_POWER_UP:
     CMP AH, 60 ; F2 SCAN Code
     JNE @@THIRD_POWER_UP
     CALL EXECUTE_SECOND_POWER_UP 
-    RET
+    JMP @@RETURN
     @@THIRD_POWER_UP:
     CMP AH, 61 ; F3 SCAN Code
     JNE @@FORTH_POWER_UP
     CALL EXECUTE_THIRD_POWER_UP 
-    RET
+    JMP @@RETURN
     @@FORTH_POWER_UP:
     CMP AH, 62 ; F4 SCAN Code
     JNE @@FIFTH_POWER_UP
     ; Call Third Power Up 
-    RET
+    JMP @@RETURN
     @@FIFTH_POWER_UP:
     CMP AH, 63 ; F5 SCAN Code
     JNE @@WRITE_BUFFER_CMD
     CALL EXECUTE_FIFTH_POWER_UP
-    RET
+    JMP @@RETURN
     @@WRITE_BUFFER_CMD: 
     CALL WRITE_CMD
+    @@RETURN:
+    CONSUMEBUFFER
     RET
 HANDLE_BUFFER ENDP
 
@@ -2214,7 +2582,7 @@ SET_INITIAL_SCORE ENDP
 
 SET_PROCCESSOR_MSG PROC NEAR
     TEST CURR_PROCESSOR_FLAG, 00000001B
-    JNZ @@PLAYER2ONLY
+    JZ @@PLAYER2ONLY
     TEST CURR_PROCESSOR_FLAG, 00010000B
     JNZ @@PLAYER1AND2
     MOV PROCESSOR_CHARACTER, '0'
@@ -2233,10 +2601,11 @@ MAIN PROC FAR
     MOV DS, AX
     ;End initialize
 
-    ;RUN_STRT_SCREEN P1_USERNAME_BUFF, P1_INITIAL_POINTS
-    ;RUN_STRT_SCREEN P2_USERNAME_BUFF, P2_INITIAL_POINTS
-    ;GET_FORBIDDEN_CHAR P1_FORBIDDEN_CHARACTER
-    ;GET_FORBIDDEN_CHAR P2_FORBIDDEN_CHARACTER
+    RUN_STRT_SCREEN P1_USERNAME_BUFF, P1_INITIAL_POINTS
+    RUN_STRT_SCREEN P2_USERNAME_BUFF, P2_INITIAL_POINTS
+    GET_FORBIDDEN_CHAR P2_FORBIDDEN_CHARACTER
+    GET_FORBIDDEN_CHAR P1_FORBIDDEN_CHARACTER
+    
     CALL SET_INITIAL_SCORE
 
     ;SET GRAPHCIS MODE [800x600 - 256 Colors] ~~ [600V x 736H - 256 Colors]
@@ -2252,6 +2621,7 @@ MAIN PROC FAR
     ;==================
     CALL DRAW_PLAYER_1
     CALL DRAW_PLAYER_2
+    CALL UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION
     ;==================
     ;Chat Box
     PRINT_STRING 1,35, NAME_1, RED
@@ -2260,6 +2630,9 @@ MAIN PROC FAR
     PRINT_STRING 1,36, NAME_2, RED
     PRINT_STRING 8,36, MESSAGE_2, LIGHT_WHITE
     ;==================
+    PRINT_STRING 1, 3, PROCESSOR_MSG, LIGHT_YELLOW
+
+    ;=================
     MOV BP, 0
     UPDATE_TIMER:
     ;Check buffer
@@ -2267,8 +2640,8 @@ MAIN PROC FAR
     INT 16h
     JZ SKIP_HANDLE 
     CALL HANDLE_BUFFER
-    CONSUMEBUFFER
     SKIP_HANDLE:
+    
     
 
     MOV DX,BP
@@ -2278,6 +2651,7 @@ MAIN PROC FAR
     MOV PLAYER_1_TIMER_VALUE, BP
     MOV PLAYER_2_Z_FLAG_VALUE, DL
     MOV PLAYER_2_TIMER_VALUE, BP
+    
     CALL PLAYER_1_UPDATE_REGISTERS_REPRESENTATION
     CALL PLAYER_1_UPDATE_MEMORY_REPRESENTATION
     CALL PLAYER_1_UPDATE_FLAGS_REPRESENTATION
@@ -2288,8 +2662,17 @@ MAIN PROC FAR
     CALL PLAYER_2_UPDATE_FLAGS_REPRESENTATION
     CALL PLAYER_2_UPDATE_BIRD_SCORE
 
+    CALL UPDATE_CURRENT_PROCESSOR_REPRESENTATION
     INC BP
 
+    @@MINI_GAME:
+    call MINI_GAME    
+    INC TIME
+    INC BP
+    MOV PLAYER_2_TIMER_VALUE, BP
+    CALL PLAYER_2_UPDATE_REGISTERS_REPRESENTATION
+    cmp GAME_MOVING, 1
+    JE @@MINI_GAME
 
     ;TIMER DELAY 
     ;MOV CX,0FFFFH
