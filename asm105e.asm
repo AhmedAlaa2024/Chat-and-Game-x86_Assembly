@@ -1633,6 +1633,12 @@ DISPLAY_FLAG_VALUE  MACRO   X, Y, FLAG, COLOR
 ENDM DISPLAY_FLAG_VALUE
 ;===================================================================
 PLAYER_1_UPDATE_REGISTERS_REPRESENTATION PROC
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSH SI
+
         MOV BL, LIGHT_WHITE ;Set color
         MOV DL, 60          ;Set X
         MOV DH, 7           ;Set Y
@@ -1675,12 +1681,24 @@ PLAYER_1_UPDATE_REGISTERS_REPRESENTATION PROC
 
         MOV DH, 25
         MOV SI, OFFSET PLAYER_1_TIMER_VALUE
-        CALL PRINT_NUM_TO_GRAPHICS 
+        CALL PRINT_NUM_TO_GRAPHICS
+
+        POP SI
+        POP DX
+        POP CX
+        POP BX
+        POP AX 
         RET
 PLAYER_1_UPDATE_REGISTERS_REPRESENTATION ENDP    
 ;===================================================================
 PLAYER_1_UPDATE_MEMORY_REPRESENTATION    PROC
         PUSH BP
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSH SI
+
         MOV BL, LIGHT_WHITE ;Set color
         MOV DL, 77          ;Set X
         MOV DH, 7           ;Set Y
@@ -1705,6 +1723,12 @@ PLAYER_1_UPDATE_MEMORY_REPRESENTATION    PROC
             ADD DH, 2
             DEC BP
         JNZ @@COL2
+        
+        POP SI
+        POP DX
+        POP CX
+        POP BX
+        POP AX
         POP BP
         RET
 ENDP    PLAYER_1_UPDATE_MEMORY_REPRESENTATION
@@ -1862,7 +1886,13 @@ DRAW_PLAYER_1 PROC
 ENDP    DRAW_PLAYER_1
 ;===================================================================
 PLAYER_2_UPDATE_REGISTERS_REPRESENTATION    PROC
-                 MOV BL, LIGHT_WHITE ;Set color
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSH SI
+
+        MOV BL, LIGHT_WHITE ;Set color
         MOV DL, 10          ;Set X
         MOV DH, 7           ;Set Y
         MOV CX, 2           ;Print two bytes
@@ -1904,12 +1934,24 @@ PLAYER_2_UPDATE_REGISTERS_REPRESENTATION    PROC
 
         MOV DH, 25
         MOV SI, OFFSET PLAYER_2_TIMER_VALUE
-        CALL PRINT_NUM_TO_GRAPHICS 
+        CALL PRINT_NUM_TO_GRAPHICS
+        
+        POP SI
+        POP DX
+        POP CX
+        POP BX
+        POP AX
         RET
 ENDP    PLAYER_2_UPDATE_REGISTERS_REPRESENTATION
 ;===================================================================
 PLAYER_2_UPDATE_MEMORY_REPRESENTATION    PROC
         PUSH BP
+        PUSH AX
+        PUSH BX
+        PUSH CX
+        PUSH DX
+        PUSH SI
+
         MOV BL, LIGHT_WHITE ;Set color
         MOV DL, 28          ;Set X
         MOV DH, 7           ;Set Y
@@ -1934,6 +1976,12 @@ PLAYER_2_UPDATE_MEMORY_REPRESENTATION    PROC
             ADD DH, 2
             DEC BP
         JNZ @@COL2
+
+        POP SI
+        POP DX
+        POP CX
+        POP BX
+        POP AX
         POP BP
         RET
 ENDP    PLAYER_2_UPDATE_MEMORY_REPRESENTATION
@@ -2501,8 +2549,7 @@ HANDLE_BUFFER PROC NEAR
     JB @@NOT_ARROW
     CMP AH, 80
     JAE @@NOT_ARROW
-    ;CALL BIRD MOVE
-    RET
+    JMP @@RETURN
     @@NOT_ARROW:
     ;Check if power up key
     @@FIRST_POWER_UP:
@@ -2621,6 +2668,7 @@ MAIN PROC FAR
     ;==================
     CALL DRAW_PLAYER_1
     CALL DRAW_PLAYER_2
+    CALL DRAW_TARGET_BACKGROUND
     CALL UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION
     ;==================
     ;Chat Box
@@ -2665,14 +2713,11 @@ MAIN PROC FAR
     CALL UPDATE_CURRENT_PROCESSOR_REPRESENTATION
     INC BP
 
-    @@MINI_GAME:
-    call MINI_GAME    
-    INC TIME
-    INC BP
-    MOV PLAYER_2_TIMER_VALUE, BP
-    CALL PLAYER_2_UPDATE_REGISTERS_REPRESENTATION
-    cmp GAME_MOVING, 1
-    JE @@MINI_GAME
+    ;@@MINI_GAME:
+    ;call MINI_GAME    
+    ;INC TIME
+    ;cmp GAME_MOVING, 1
+    ;je @@MINI_GAME
 
     ;TIMER DELAY 
     ;MOV CX,0FFFFH
