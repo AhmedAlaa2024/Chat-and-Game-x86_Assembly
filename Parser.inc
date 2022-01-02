@@ -1,8 +1,8 @@
 ;=============================================================================
 ;Split a string into word slices
 ;The seperator character is space ' '
-;INPUT:     '$' Terminated String:                      SRC
-;OUTPUT:    NULL(ASCII 0) Terminated Array of strings:  DST
+;INPUT:     '$' Terminated String:                      CMD_MSG
+;OUTPUT:    NULL(ASCII 0) Terminated Array of strings:  SPLIT_DATA
 ;
 ;Example Usage:
 ;   SPLIT_STRING used on '  MOV AX,   DI  $'
@@ -85,16 +85,26 @@ SPLIT_STRING PROC NEAR
     
     RET
 SPLIT_STRING ENDP
-
+;=============================================================================
+;   Current parse step is invalid event handler
+;=============================================================================
 PARSE_ERROR PROC NEAR
     MOV PARSE_ERROR_FLAG, 1
     RET
 PARSE_ERROR ENDP
-
+;=============================================================================
+;   Current parse step is valid event handler
+;=============================================================================
 PARSE_VALID PROC NEAR
     RET
 PARSE_VALID ENDP
 
+;=============================================================================
+;Parser subroutine that parses a cmd name
+;INPUT:     SI (Current location in Split_data)  
+;               
+;OUTPUT:    CMD flag (Position in CMD_ARR) as described in PrsrData.inc
+;=============================================================================
 PARSE_CMD PROC NEAR
     MOV DI, 0
     MOV SI, 0
@@ -150,6 +160,12 @@ PARSE_CMD PROC NEAR
     RET
 PARSE_CMD ENDP
 
+;=============================================================================
+;Parser subroutine that parses a single operand
+;INPUT:     SI (Current location in Split_data)  
+;               
+;OUTPUT:    Operand flag and location
+;=============================================================================
 PARSE_OPERAND PROC NEAR
     ;CHECK MEMORY MODE
     @@MEM_CHK:
@@ -357,7 +373,14 @@ PARSE_OPERAND PROC NEAR
     CALL PARSE_VALID
     RET
 PARSE_OPERAND ENDP
-
+;=============================================================================
+;Parser subroutine that parses the (0-2) operands in Split_Data
+;INPUT:     CMD Flag (Which command is currently selected)
+;           OP Flags (Which operands are supported by this cmd)   
+;               
+;OUTPUT:    OP 1 and 2 FLAGS and LOCATIONS
+;           As described in PrsrData.inc
+;=============================================================================
 PARSE_CMD_OPERANDS PROC NEAR
     MOV SI, 0
     MOV DI, P_DATA
@@ -379,12 +402,6 @@ PARSE_CMD_OPERANDS PROC NEAR
 
     CMP CL, 0
     JE @@FINAL_CHECK
-
-    ;CMP SPLIT_DATA[SI], 0
-    ;JNE @@NOT_END_OF_DATA
-    ;CALL PARSE_ERROR
-    ;RET
-    ;@@NOT_END_OF_DATA:
 
     ;Has first operand
     MOV DX, OFFSET OP1_PROPERTY
@@ -499,7 +516,24 @@ PARSE_CMD_OPERANDS PROC NEAR
     CALL PARSE_ERROR
     RET 
 PARSE_CMD_OPERANDS ENDP
-
+;=============================================================================
+;Parse an ASM X86 command
+;PARSE_ERROR is called whenever a parse step is invalid
+;PARSE_VALID is called whenever a parse step is successful
+;
+;INPUT:     '$' Terminated String:                    CMD_MSG                   
+;OUTPUT:    CMD FLAGS
+;           OP 1 and 2 FLAGS and LOCATIONS
+;           As described in PrsrData.inc
+;Example Usage:
+;   PARSER used on '  MOV AX,   0ABCD  $'
+;   Output:
+;       CMD FLag    : MOV CMD flag (1-Byte based on PrsrData defintion order)
+;       OP1 Location: OFFSET Player_AX_DATA
+;       OP2 Location: OFFFSET Player_Immediate_DATA
+;       OP1 PROPERTY: Reg, 16-bits
+;       OP2 PROPERTY: Immediate, 16-bits
+;=============================================================================
 PARSER PROC NEAR    
     MOV PARSE_ERROR_FLAG, 0
     CALL SPLIT_STRING
