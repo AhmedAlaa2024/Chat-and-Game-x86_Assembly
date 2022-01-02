@@ -1440,7 +1440,14 @@ WRITE_CMD PROC NEAR
     INC BYTE PTR [SI]
     RET
 ENDP WRITE_CMD
-
+;===========================================================================================
+; Function: HANDLE_BUFFER                                                                   |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Conversion from 4-digit number to string                               |
+;                    This will be saved in STR_TEMP(SIZE : 4)                               |
+; Description:                                                                              |
+;              Convert the number digit by digit to char by char and put it in the variable |
+;===========================================================================================
 HANDLE_BUFFER PROC NEAR
     CMP AH, 75
     JB @@NOT_ARROW
@@ -1528,7 +1535,15 @@ CONVERT_WORD_TO_STRING PROC NEAR
         POP DX
         RET
 CONVERT_WORD_TO_STRING ENDP
-
+;===========================================================================================
+; Function: SET_INITIAL_SCORE                                                               |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Set Initial Score For Each Player                                      |
+;                    Choose Minimum Of The Initial POints ENtered By Each Player            |
+; Description:                                                                              |
+;              Set Initial Score For Each Player by Choose Minimum Of                       |
+;              The Initial Points Entered By Each Player                                    |  
+;===========================================================================================
 SET_INITIAL_SCORE PROC NEAR
     MOV AX, P1_INITIAL_POINTS
     CMP P2_INITIAL_POINTS, AX
@@ -1542,22 +1557,37 @@ SET_INITIAL_SCORE PROC NEAR
     MOV PLAYER_2_SCORE_VALUE,AX
     RET
 SET_INITIAL_SCORE ENDP
-
+;===========================================================================================
+; Function: SET_PROCCESSOR_MSG                                                              |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Set The Processor Message To Be Displayed                              |
+; Description:                                                                              |
+;                    0 : Second Player Processor                                            | 
+;                    1 : First Player Processor                                             | 
+;                    2 : First And Second Player Processors "WHen Using Second Power UP"    | 
+;===========================================================================================
 SET_PROCCESSOR_MSG PROC NEAR
     TEST CURR_PROCESSOR_FLAG, 00000001B
     JZ @@PLAYER2ONLY
     TEST CURR_PROCESSOR_FLAG, 00010000B
     JNZ @@PLAYER1AND2
-    MOV PROCESSOR_CHARACTER, '0'
+    MOV PROCESSOR_CHARACTER, '1'
     RET
     @@PLAYER2ONLY:
-    MOV PROCESSOR_CHARACTER, '1'    
+    MOV PROCESSOR_CHARACTER, '0'    
     RET
     @@PLAYER1AND2:
     MOV PROCESSOR_CHARACTER, '2'    
     RET
 SET_PROCCESSOR_MSG ENDP
-
+;===========================================================================================
+; Function: DID_SOMEONE_WIN                                                                 |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Check If A Player Has Won The Game                                     |
+; Description:                                                                              |
+;                    Either A Player Score Reaches Zero                                     | 
+;                    or He/She Managed TO Put 105e In His/Her Opponent Registers            | 
+;===========================================================================================
 DID_SOMEONE_WIN MACRO GAME_ENDED
     CMP PLAYER_1_SCORE_VALUE , 0
     JBE GAME_ENDED
@@ -1569,8 +1599,17 @@ DID_SOMEONE_WIN MACRO GAME_ENDED
     CMP REGISTER_VALUE_FOUND_FLAG,0
     JA GAME_ENDED
 ENDM DID_SOMEONE_WIN
-
-
+;===========================================================================================
+; Function: CHECK_REGISTERS_VALUES                                                          |
+; TESTED:   TRUE                                                                            |
+; Input:                                                                                    |
+;               DI = The Value To Search For In All The Registers                           |
+; Output: <Action> = Set REGISTER_VALUE_FOUND_FLAG To The Result Of Searching For The       |
+;                    The Value In DI In Any Register                                        |
+; Description:                                                                              |
+;                    Search A Value In All Registers And Set The REGISTER_VALUE_FOUND_FLAG  | 
+;                    As Descriped In The Data Decleration                                   | 
+;===========================================================================================
 CHECK_REGISTERS_VALUES PROC NEAR
         PUSH AX
         PUSH CX
@@ -1611,6 +1650,7 @@ CHECK_REGISTERS_VALUES PROC NEAR
         POP AX
         RET
 CHECK_REGISTERS_VALUES ENDP
+
 MAIN PROC FAR
     ;Initialize Data Segment
     MOV AX, @DATA
