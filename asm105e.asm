@@ -48,6 +48,11 @@ P2_CLEARED_ALL_RESGISTERS DB 0
 P1_CHANGED_FORBIDDEN_CHAR DB 0
 P2_CHANGED_FORBIDDEN_CHAR DB 0
 
+;LEVEL 2 POWER UP -F6
+P1_CHANGED_ALL_RESGISTERS DB 0
+P2_CHANGED_ALL_RESGISTERS DB 0
+REGISTER_VALUE_FOUND_FLAG DW 0;P1_AX-P1_CX-000000.P2_AX-P2_BX-000000 RANGED-> AX,CX,DX,BX,SI,DI,BP,SP
+
 PARSE_ERROR_FLAG DB 0
 FORBIDDEN_CHAR_ERROR_FLAG DB 0
 GAME_LEVEL DB 0
@@ -965,12 +970,12 @@ ENDM DRAW_BULLET2
 ;===================================================================
 ; The Bird game proc
 ;===================================================================
-MINI_GAME PROC 
+MINI_GAME PROC
         CMP GAME_MOVING,1
         JE GAMEISMOVING
         CALL GENERATE_RANDOM
         CMP RANDOM0_99,88
-        JNE GAMENOTMOVING
+        JE GAMENOTMOVING
         RET
 GAMENOTMOVING:
         MOV GAME_MOVING,1
@@ -1327,7 +1332,7 @@ GENERATE_RANDOM PROC
         MOV RANDOM0_4,DX
         call    CalcNew   ; -> AX is a random number
         xor     dx, dx
-        mov     cx, 1000    
+        mov     cx, 5000    
         div     cx        ; here dx contains the remainder - from 0 to 5
         MOV RANDOM0_99,DX
         POP CX
@@ -2159,11 +2164,11 @@ CAN_USE_POWER_UP MACRO NO, COST
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER_2
     CMP PLAYER_1_SCORE_VALUE, COST
-    JB NO
+    JBE NO
     JMP @@EXIT_M
     @@PLAYER_2:
     CMP PLAYER_2_SCORE_VALUE, COST
-    JB NO
+    JBE NO
     @@EXIT_M:
 ENDM CAN_USE_POWER_UP     
 
@@ -2338,7 +2343,153 @@ EXECUTE_THIRD_POWER_UP PROC NEAR
     POP AX
     RET
 EXECUTE_THIRD_POWER_UP ENDP
+EXECUTE_SIXTH_POWER_UP PROC NEAR
+        PUSH AX
+        PUSH BX
+        PUSH SI
+        PUSH DI
+        TEST GAME_LEVEL,1
+        JZ @@RETURN
+        MOV BL, CMD_BUFF[1]
+        CMP BL,9 ;ABCD ABCD = 9 CHARS        
+        JNE @@RETURN
+        TEST POWER_UP_SELECTED_FLAG, 1
+        JZ @@EXECUTE
+        JMP @@RETURN
+        @@EXECUTE:
 
+        TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
+        JNZ @@PLAYER2
+        TEST P1_CHANGED_ALL_RESGISTERS, 1
+        JNZ @@RETURN
+        MOV P1_CHANGED_ALL_RESGISTERS, 1
+        JMP @@CHANGE
+        @@PLAYER2:
+        TEST P2_CHANGED_ALL_RESGISTERS, 1
+        JNZ @@RETURN
+        MOV P2_CHANGED_ALL_RESGISTERS, 1
+        @@CHANGE:
+
+        ;SPLIT AND EXCEUTE
+        CALL SPLIT_STRING 
+        TOUPPER SPLIT_DATA, 30
+
+        MOV SI,0
+        MOV BX, 0       
+        @@FIRST_VAL:        
+        MOV Al, SPLIT_DATA[BX]
+        ISXDIGIT AL, @@CONTINUE1
+        JMP @@REST
+        @@CONTINUE1:
+        ISDIGIT AL,@@DIGIT_1
+        SUB AL,55D
+        JMP @@END1
+        @@DIGIT_1:
+        SUB AL,'0'
+        @@END1:
+        SHL SI,4
+        MOV AH,0
+        ADD SI,AX
+        INC BX
+        CMP BX,4
+        JNE @@FIRST_VAL
+
+        MOV BX,5
+        MOV DI,0    
+        @@SECOND_VAL:        
+        MOV Al, SPLIT_DATA[BX]
+        ISXDIGIT AL, @@CONTINUE2
+        JMP @@REST
+        @@CONTINUE2:
+        ISDIGIT AL,@@DIGIT_2
+        SUB AL,55D
+        JMP @@END2
+        @@DIGIT_2:
+        SUB AL,'0'
+        @@END2:
+        SHL DI,4
+        MOV AH,0
+        ADD DI,AX
+        INC BX
+        CMP BX,9
+        JNE @@SECOND_VAL
+        ;HERE MEANS ALL GOOD SHOULD EXCEUCTE AND EARSE BUFFER
+        ; MOV PLAYER_1_SI_VALUE,SI
+        ; MOV PLAYER_1_DI_VALUE,DI
+
+        ; CHECK_REGISTERS_VALUES DI
+        ; CMP REGISTER_VALUE_FOUND_FLAG,0
+        ; JE @@REST
+        ;JMP @@REST
+        XCHG SI,DI
+        CHECK_REGISTERS_VALUES DI
+        XCHG SI,DI
+        ;REGISTER_VALUE_FOUND_FLAG NOW HAS ALL THE REGS WITH THE PREVOIUS VALUE TO BE CHANGED
+        MOV AX,1000000000000000B
+        ;P1 CHECK
+        MOV CX,8
+        LEA BX,P1_DATA
+        @@P1_CHECK:
+        TEST REGISTER_VALUE_FOUND_FLAG,AX
+        JZ @@NEXT1
+        MOV [BX],DI
+        @@NEXT1:
+        SHR AX,1
+        ADD BX,2
+        LOOP @@P1_CHECK
+
+        ;P2 CHECK
+        MOV CX,8
+        LEA BX,P2_DATA
+        @@P2_CHECK:
+        TEST REGISTER_VALUE_FOUND_FLAG,AX
+        JZ @@NEXT2
+        MOV [BX],DI
+        @@NEXT2:
+        SHR AX,1
+        ADD BX,2
+        LOOP @@P2_CHECK
+
+        MOV AX, 50
+        CALL DESCREASE_CURRENT_PLAYER_SCORE
+        JMP @@REST
+
+
+        @@REST:
+        ;RESET PLAYER CURSOR LOCATION
+        TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
+        JNZ @@PLAYER2_CMD_LOC
+        MOV PLAYER_1_CMD_X_LOCATION, 54
+        MOV BL, P1_USERNAME_SIZE
+        ADD PLAYER_1_CMD_X_LOCATION, BL 
+        JMP @@CONTNIUE
+        @@PLAYER2_CMD_LOC:
+        MOV PLAYER_2_CMD_X_LOCATION, 5
+        MOV BL, P2_USERNAME_SIZE
+        ADD PLAYER_2_CMD_X_LOCATION, BL 
+        @@CONTNIUE:    
+
+        CALL GET_CURR_PLAYER_CMD_X_LOCATION
+
+        MOV CX, 30
+        MOV BH, 0
+        
+        MOVE_CURSOR [SI], 29
+        MOV AH, 0EH
+        MOV AL, 32
+        MOV BL, 0FH
+        @@CLEAR_CMD_BOX:
+        INT 10H
+        LOOP @@CLEAR_CMD_BOX  
+
+
+@@RETURN:
+        POP DI
+        POP SI
+        POP BX
+        POP AX
+        RET
+ENDP EXECUTE_SIXTH_POWER_UP
 EXECUTE_CURRENT_COMMAND PROC NEAR
     ;Clear CMD buffer
     MOV BH, 0
@@ -2591,9 +2742,15 @@ HANDLE_BUFFER PROC NEAR
     JMP @@RETURN
     @@FIFTH_POWER_UP:
     CMP AH, 63 ; F5 SCAN Code
-    JNE @@WRITE_BUFFER_CMD
+    JNE @@SIXTH_POWER_UP
     CAN_USE_POWER_UP @@RETURN, 30
     CALL EXECUTE_FIFTH_POWER_UP
+    JMP @@RETURN
+    @@SIXTH_POWER_UP:
+    CMP AH, 64 ; F5 SCAN Code
+    JNE @@WRITE_BUFFER_CMD
+    CAN_USE_POWER_UP @@RETURN, 50
+    CALL EXECUTE_SIXTH_POWER_UP
     JMP @@RETURN
     @@WRITE_BUFFER_CMD: 
     CALL WRITE_CMD
@@ -2666,6 +2823,47 @@ DID_SOMEONE_WIN MACRO GAME_ENDED
     CMP PLAYER_2_SCORE_VALUE , 0
     JBE GAME_ENDED
 ENDM DID_SOMEONE_WIN
+
+CHECK_REGISTERS_VALUES MACRO VALUE
+        LOCAL P1_CHECK,NEXT1,NEXT2,P2_CHECK
+        PUSH AX
+        PUSH CX
+        PUSH BX
+        PUSH SI
+
+        MOV REGISTER_VALUE_FOUND_FLAG,0
+        MOV AX,1000000000000000B
+        ;P1 CHECK
+        MOV CX,8
+        LEA BX,P1_DATA
+        P1_CHECK:
+        MOV SI,[BX]
+        CMP VALUE,SI
+        JNE NEXT1
+        OR REGISTER_VALUE_FOUND_FLAG,AX
+        NEXT1:
+        SHR AX,1
+        ADD BX,2
+        LOOP P1_CHECK
+
+        ;P2 CHECK
+        MOV CX,8
+        LEA BX,P2_DATA
+        P2_CHECK:
+        MOV SI,[BX]
+        CMP VALUE,SI
+        JNE NEXT2
+        OR REGISTER_VALUE_FOUND_FLAG,AX
+        NEXT2:
+        SHR AX,1
+        ADD BX,2
+        LOOP P2_CHECK
+
+        POP SI
+        POP BX
+        POP CX
+        POP AX
+ENDM CHECK_REGISTERS_VALUES 
 MAIN PROC FAR
     ;Initialize Data Segment
     MOV AX, @DATA
@@ -2705,6 +2903,12 @@ MAIN PROC FAR
     ;==================
     PRINT_STRING 1, 3, PROCESSOR_MSG, LIGHT_YELLOW
 
+;     MOV PLAYER_1_BX_VALUE,0123   
+;     MOV DI,0123
+;     CHECK_REGISTERS_VALUES DI
+;     MOV DI,REGISTER_VALUE_FOUND_FLAG
+;     MOV PLAYER_1_CX_VALUE,DI    
+
     ;=================
     MOV BP, 0
     UPDATE_TIMER:
@@ -2714,7 +2918,6 @@ MAIN PROC FAR
     JZ SKIP_HANDLE 
     CALL HANDLE_BUFFER
     SKIP_HANDLE:
-    
     
 
     MOV DX,BP
@@ -2738,11 +2941,11 @@ MAIN PROC FAR
     CALL UPDATE_CURRENT_PROCESSOR_REPRESENTATION
     INC BP
 
-    ;@@MINI_GAME:
-    ;call MINI_GAME    
-    ;INC TIME
-    ;cmp GAME_MOVING, 1
-    ;je @@MINI_GAME
+    @@MINI_GAME:
+    call MINI_GAME    
+    INC TIME
+    cmp GAME_MOVING, 1
+    je @@MINI_GAME
 
     ;TIMER DELAY 
     ;MOV CX,0FFFFH
