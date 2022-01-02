@@ -491,7 +491,7 @@ PLAYER_1_UPDATE_MEMORY_REPRESENTATION    PROC
 
         MOV DL, 93
         MOV DH, 7
-        MOV SI, OFFSET PLAYER_2_MEM_8_VALUE
+        MOV SI, OFFSET PLAYER_1_MEM_8_VALUE
         MOV BP, 8           ;Loop counter
         @@COL2:
             CALL PRINT_NUM_TO_GRAPHICS 

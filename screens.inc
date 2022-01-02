@@ -310,7 +310,7 @@ IS_SECRET_KEY MACRO   NUMBER, ADDRESS
         JZ ADDRESS
         POP AX
 ENDM    IS_SECRET_KEY
-
+;=============================================================================
 PLAYER_1_INITIALIZE_REG  PROC
         PUSH AX
         PUSH CX
@@ -320,8 +320,10 @@ PLAYER_1_INITIALIZE_REG  PROC
                     GET_CHAR
                     CMP AL,08H
                     JZ @@BACKSPACE
-                    CMP AL,13
+                    CMP AL,10
                     JZ @@ENTER
+
+                    CHARTOUPPER AL
 
                     ISXDIGIT AL, @@CONVERT
                     JMP @@REPEAT
@@ -446,8 +448,11 @@ PLAYER_2_INITIALIZE_REG  PROC
                     GET_CHAR
                     CMP AL,08H
                     JZ @@BACKSPACE
-                    CMP AL,13
+                    CMP AL,10
                     JZ @@ENTER
+
+                    CHARTOUPPER AL
+                    
                     ISXDIGIT AL, @@CONVERT
                     JMP @@REPEAT
 
@@ -636,3 +641,4 @@ PLAYER_2_RUN_INITIALIZATION_SCREEN   PROC
 
         RET
 ENDP    PLAYER_2_RUN_INITIALIZATION_SCREEN
+;==============================================================
