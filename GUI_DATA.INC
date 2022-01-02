@@ -1,3 +1,24 @@
+;Screen Data
+STRT_NAME_PROMPT DB 'Please enter your name: (Must start with a letter)',13,10,'$'
+STRT_POINT_PROMPT DB 'Enter your suggested initial points: (4-Digit max)',13,10,'$'
+FORBIDDEN_CHAR_PROMPT DB 'Enter your forbidden char: (1 Character Max)',13,10,'$'
+GAME_LEVEL_PROMPT DB 'Enter your game level: (1 or 2 Only)',13,10,'$'
+GAME_ENDED_PROMPT DB 'Game Ended And The Winner Is : ','$'
+STRT_PRESS_ENTER_PROMPT DB 'Press Enter key to continue','$'
+
+TEMP_REG_VALUE  DW  0000
+CURRENT_REG DB  0
+
+STRT_AX_PROMPT DB  'Enter your suggested initial Register value for AX: (4-Digit max)',13,10,'$'
+STRT_BX_PROMPT DB  'Enter your suggested initial Register value for BX: (4-Digit max)',13,10,'$'
+STRT_CX_PROMPT DB  'Enter your suggested initial Register value for CX: (4-Digit max)',13,10,'$'
+STRT_DX_PROMPT DB  'Enter your suggested initial Register value for DX: (4-Digit max)',13,10,'$'
+STRT_DI_PROMPT DB  'Enter your suggested initial Register value for DI: (4-Digit max)',13,10,'$'
+STRT_SI_PROMPT DB  'Enter your suggested initial Register value for SI: (4-Digit max)',13,10,'$'
+STRT_BP_PROMPT DB  'Enter your suggested initial Register value for BP: (4-Digit max)',13,10,'$'
+STRT_SP_PROMPT DB  'Enter your suggested initial Register value for SP: (4-Digit max)',13,10,'$'
+;STRT_REG_PROMPT DB  [STRT_AX_PROMPT], [STRT_BX_PROMPT], [STRT_CX_PROMPT], [STRT_DX_PROMPT], [STRT_DI_PROMPT], [STRT_SI_PROMPT], [STRT_BP_PROMPT], [STRT_SP_PROMPT]
+
 ;===========================================
 STR_TEMP              DB      ?,?,?,?,'$'
 ;===========================================

@@ -57,8 +57,7 @@ PARSE_ERROR_FLAG DB 0
 FORBIDDEN_CHAR_ERROR_FLAG DB 0
 GAME_LEVEL DB 0
 
-;Main screen and selection screen data
-INCLUDE SCREENS.inc
+
 ;Player data
 INCLUDE P_DATA.inc
 ;Character macros
@@ -79,6 +78,14 @@ INCLUDE PARSER.INC
 INCLUDE CMD_PROC.INC
 ;GUI Commands
 INCLUDE GUI.INC
+
+INCLUDE CHAR.INC
+
+
+;Main screen and selection screen data
+INCLUDE SCREENS.inc
+
+
 ;===========================================================================================
 ; Function: drawPNG                                                                         |
 ; TESTED:   TRUE                                                                            |
@@ -1794,6 +1801,12 @@ MAIN PROC FAR
     GET_FORBIDDEN_CHAR P2_FORBIDDEN_CHARACTER
     GET_FORBIDDEN_CHAR P1_FORBIDDEN_CHARACTER
     SELECT_GAME_LEVEL_SCREEN GAME_LEVEL
+
+    TEST GAME_LEVEL, 1
+    JZ @@LEVEL_1
+    CALL PLAYER_1_RUN_INITIALIZATION_SCREEN
+    CALL PLAYER_2_RUN_INITIALIZATION_SCREEN
+    @@LEVEL_1:
 
     CALL SET_INITIAL_SCORE
 

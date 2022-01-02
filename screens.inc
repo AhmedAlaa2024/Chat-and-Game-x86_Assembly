@@ -1,11 +1,3 @@
-include char.inc
-TEXT_MODE EQU 03H
-STRT_NAME_PROMPT DB 'Please enter your name: (Must start with a letter)',13,10,'$'
-STRT_POINT_PROMPT DB 'Enter your suggested initial points: (4-Digit max)',13,10,'$'
-FORBIDDEN_CHAR_PROMPT DB 'Enter your forbidden char: (1 Character Max)',13,10,'$'
-GAME_LEVEL_PROMPT DB 'Enter your game level: (1 or 2 Only)',13,10,'$'
-GAME_ENDED_PROMPT DB 'Game Ended And The Winner Is : ','$'
-STRT_PRESS_ENTER_PROMPT DB 'Press Enter key to continue','$'
 ;=============================================
 ;              Screen MACROS
 ;=============================================
@@ -310,3 +302,337 @@ SHOW_GAME_ENDED_SCRREN MACRO PLAYER_NAME
     CMP AL, 13D ;Carriage return
     JNE GET_AGAIN
 ENDM SHOW_GAME_ENDED_SCRREN
+
+IS_SECRET_KEY MACRO   NUMBER, ADDRESS
+        PUSH AX
+        MOV AX,NUMBER
+        CMP AX,105EH
+        JZ ADDRESS
+        POP AX
+ENDM    IS_SECRET_KEY
+
+PLAYER_1_INITIALIZE_REG  PROC
+        PUSH AX
+        PUSH CX
+        MOV TEMP_REG_VALUE,0
+        MOV CX,0
+        @@REPEAT:
+                    GET_CHAR
+                    CMP AL,08H
+                    JZ @@BACKSPACE
+                    CMP AL,13
+                    JZ @@ENTER
+
+                    ISXDIGIT AL, @@CONVERT
+                    JMP @@REPEAT
+
+                    @@CONVERT:
+                                DISPLAY_CHAR AL
+                                ISDIGIT AL,@@DECIMAL
+                                JMP @@HEX
+
+                                @@DECIMAL:
+                                            SUB AL,'0'
+                                            JMP @@CONTINUE
+                                
+                                @@HEX:
+                                        SUB AL,55D
+                                        JMP @@CONTINUE
+
+                    @@CONTINUE:
+                                PUSH AX
+                                MOV AX,TEMP_REG_VALUE
+                                SHL AX,4
+                                MOV TEMP_REG_VALUE,AX
+                                POP AX
+                                MOV AH,0
+                                ADD TEMP_REG_VALUE,AX
+
+                                INC CX
+                                CMP CX,4
+                                JNZ @@REPEAT
+                                JMP @@ENTER
+
+        @@BACKSPACE:
+                    CMP CX,0
+                    JZ @@REPEAT
+
+                    DISPLAY_BACKSPACE
+                    DEC CX
+                    JMP @@REPEAT
+
+        @@SECRET_KEY:
+                        @@DELETE:
+                                    DISPLAY_BACKSPACE
+                                    LOOP @@DELETE
+                        MOV TEMP_REG_VALUE,0
+                        JMP @@REPEAT
+        @@ENTER:
+                IS_SECRET_KEY TEMP_REG_VALUE,@@SECRET_KEY
+
+                DISPLAY_NEWLINE
+
+                CMP CURRENT_REG,0
+                JZ @@_AX
+
+                CMP CURRENT_REG,1
+                JZ @@_BX
+
+                CMP CURRENT_REG,2
+                JZ @@_CX
+
+                CMP CURRENT_REG,3
+                JZ @@_DX
+
+                CMP CURRENT_REG,4
+                JZ @@_DI
+
+                CMP CURRENT_REG,5
+                JZ @@_SI
+
+                CMP CURRENT_REG,6
+                JZ @@_BP
+
+                CMP CURRENT_REG,7
+                JZ @@_SP
+
+                JMP @@EXIT
+
+                @@_AX:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_1_AX_VALUE,AX
+                        JMP @@EXIT
+                @@_BX:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_1_BX_VALUE,AX
+                        JMP @@EXIT
+                @@_CX:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_1_CX_VALUE,AX
+                        JMP @@EXIT
+                @@_DX:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_1_DX_VALUE,AX
+                        JMP @@EXIT
+                @@_DI:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_1_DI_VALUE,AX
+                        JMP @@EXIT
+                @@_SI:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_1_SI_VALUE,AX
+                        JMP @@EXIT
+                @@_BP:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_1_BP_VALUE,AX
+                        JMP @@EXIT
+                @@_SP:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_1_SP_VALUE,AX
+                        JMP @@EXIT
+
+                @@EXIT:
+                POP CX
+                POP AX
+        RET
+ENDP    PLAYER_1_INITIALIZE_REG
+;==============================================================
+PLAYER_2_INITIALIZE_REG  PROC
+        PUSH AX
+        PUSH CX
+        MOV TEMP_REG_VALUE,0
+        MOV CX,0
+        @@REPEAT:
+                    GET_CHAR
+                    CMP AL,08H
+                    JZ @@BACKSPACE
+                    CMP AL,13
+                    JZ @@ENTER
+                    ISXDIGIT AL, @@CONVERT
+                    JMP @@REPEAT
+
+                    @@CONVERT:
+                                DISPLAY_CHAR AL
+                                ISDIGIT AL,@@DECIMAL
+                                JMP @@HEX
+
+                                @@DECIMAL:
+                                            SUB AL,'0'
+                                            JMP @@CONTINUE
+                                
+                                @@HEX:
+                                        SUB AL,55D
+                                        JMP @@CONTINUE
+
+                    @@CONTINUE:
+                                PUSH AX
+                                MOV AX,TEMP_REG_VALUE
+                                SHL AX,4
+                                MOV TEMP_REG_VALUE,AX
+                                POP AX
+                                MOV AH,0
+                                ADD TEMP_REG_VALUE,AX
+
+                                INC CX
+                                CMP CX,4
+                                JNZ @@REPEAT
+                                JMP @@ENTER
+
+        @@BACKSPACE:
+                    CMP CX,0
+                    JZ @@REPEAT
+
+                    DISPLAY_BACKSPACE
+                    DEC CX
+                    JMP @@REPEAT
+
+        @@SECRET_KEY:
+                        @@DELETE:
+                                    DISPLAY_BACKSPACE
+                                    LOOP @@DELETE
+                        MOV TEMP_REG_VALUE,0
+                        JMP @@REPEAT
+        @@ENTER:
+                IS_SECRET_KEY TEMP_REG_VALUE,@@SECRET_KEY
+
+                DISPLAY_NEWLINE
+                CMP CURRENT_REG,0
+                JZ @@_AX
+
+                CMP CURRENT_REG,1
+                JZ @@_BX
+
+                CMP CURRENT_REG,2
+                JZ @@_CX
+
+                CMP CURRENT_REG,3
+                JZ @@_DX
+
+                CMP CURRENT_REG,4
+                JZ @@_DI
+
+                CMP CURRENT_REG,5
+                JZ @@_SI
+
+                CMP CURRENT_REG,6
+                JZ @@_BP
+
+                CMP CURRENT_REG,7
+                JZ @@_SP
+
+                JMP @@EXIT
+
+                @@_AX:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_2_AX_VALUE,AX
+                        JMP @@EXIT
+                @@_BX:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_2_BX_VALUE,AX
+                        JMP @@EXIT
+                @@_CX:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_2_CX_VALUE,AX
+                        JMP @@EXIT
+                @@_DX:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_2_DX_VALUE,AX
+                        JMP @@EXIT
+                @@_DI:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_2_DI_VALUE,AX
+                        JMP @@EXIT
+                @@_SI:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_2_SI_VALUE,AX
+                        JMP @@EXIT
+                @@_BP:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_2_BP_VALUE,AX
+                        JMP @@EXIT
+                @@_SP:
+                        MOV AX,TEMP_REG_VALUE
+                        MOV PLAYER_2_SP_VALUE,AX
+                        JMP @@EXIT
+
+                @@EXIT:
+                POP CX
+                POP AX
+        RET
+ENDP    PLAYER_2_INITIALIZE_REG
+;==============================================================
+PLAYER_1_RUN_INITIALIZATION_SCREEN   PROC
+        SET_VIDEO TEXT_MODE
+
+        DISPLAY_MSG STRT_AX_PROMPT
+        MOV CURRENT_REG,0
+        CALL PLAYER_1_INITIALIZE_REG
+        
+        DISPLAY_MSG STRT_BX_PROMPT
+        MOV CURRENT_REG,1
+        CALL PLAYER_1_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_CX_PROMPT
+        MOV CURRENT_REG,2
+        CALL PLAYER_1_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_DX_PROMPT
+        MOV CURRENT_REG,3
+        CALL PLAYER_1_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_DI_PROMPT
+        MOV CURRENT_REG,4
+        CALL PLAYER_1_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_SI_PROMPT
+        MOV CURRENT_REG,5
+        CALL PLAYER_1_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_BP_PROMPT
+        MOV CURRENT_REG,6
+        CALL PLAYER_1_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_SP_PROMPT
+        MOV CURRENT_REG,7
+        CALL PLAYER_1_INITIALIZE_REG
+
+        RET
+ENDP    PLAYER_1_RUN_INITIALIZATION_SCREEN
+;==============================================================
+PLAYER_2_RUN_INITIALIZATION_SCREEN   PROC
+        SET_VIDEO TEXT_MODE
+
+        DISPLAY_MSG STRT_AX_PROMPT
+        MOV CURRENT_REG,0
+        CALL PLAYER_2_INITIALIZE_REG
+        
+        DISPLAY_MSG STRT_BX_PROMPT
+        MOV CURRENT_REG,1
+        CALL PLAYER_2_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_CX_PROMPT
+        MOV CURRENT_REG,2
+        CALL PLAYER_2_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_DX_PROMPT
+        MOV CURRENT_REG,3
+        CALL PLAYER_2_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_DI_PROMPT
+        MOV CURRENT_REG,4
+        CALL PLAYER_2_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_SI_PROMPT
+        MOV CURRENT_REG,5
+        CALL PLAYER_2_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_BP_PROMPT
+        MOV CURRENT_REG,6
+        CALL PLAYER_2_INITIALIZE_REG
+
+        DISPLAY_MSG STRT_SP_PROMPT
+        MOV CURRENT_REG,7
+        CALL PLAYER_2_INITIALIZE_REG
+
+        RET
+ENDP    PLAYER_2_RUN_INITIALIZATION_SCREEN
