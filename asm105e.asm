@@ -1550,6 +1550,14 @@ WRITE_CMD PROC NEAR
     @@BUFF_EMPTY:
     RET
     @@NOT_BACKSPACE:
+    CMP Al, 32
+    JAE @@SKIP1
+    RET
+    @@SKIP1:
+    CMP Al, 126
+    JBE @@SKIP2
+    RET
+    @@SKIP2:
     CMP CMD_BUFF[1], CMD_BUFF_SIZE
     JNE @@BUFF_NOT_FULL
     RET
@@ -1588,12 +1596,6 @@ ENDP WRITE_CMD
 ;              3) Otherwise It Is Put In The Command Buffer                                 |
 ;===========================================================================================
 HANDLE_BUFFER PROC NEAR
-    CMP AH, 75
-    JB @@NOT_ARROW
-    CMP AH, 80
-    JAE @@NOT_ARROW
-    JMP @@RETURN
-    @@NOT_ARROW:
     ;Check if power up key
     @@FIRST_POWER_UP:
     CMP AH, 59 ; F1 SCAN Code

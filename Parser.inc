@@ -7,7 +7,7 @@
 ;Example Usage:
 ;   SPLIT_STRING used on '  MOV AX,   DI  $'
 ;   Output:
-;       'MOV$AX,$DI$',0
+;       'MOV$AX$,$DI$',0
 ;
 ;   SPLIT_STRING used on '   $'
 ;   Output:
