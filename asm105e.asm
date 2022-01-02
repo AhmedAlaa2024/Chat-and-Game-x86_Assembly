@@ -1415,10 +1415,10 @@ EXECUTE_CURRENT_COMMAND PROC NEAR
     RET
 EXECUTE_CURRENT_COMMAND ENDP
 
-;=============================================
-; Subtract AX value from current player score
-;   Should check for score reaching zero
-;=============================================
+;===========================================================================================
+; Subtract AX value from current player score                                               |
+;   Should check for score reaching zero                                                    |
+;===========================================================================================
 DESCREASE_CURRENT_PLAYER_SCORE PROC NEAR
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2
@@ -1429,10 +1429,10 @@ DESCREASE_CURRENT_PLAYER_SCORE PROC NEAR
     @@EXIT:
     RET
 DESCREASE_CURRENT_PLAYER_SCORE ENDP
-;=============================================
-;       Get current player's cmd box
-;       x location and store it in SI
-;=============================================
+;===========================================================================================
+;       Get current player's cmd box                                                        |
+;       x location and store it in SI                                                       |
+;===========================================================================================
 GET_CURR_PLAYER_CMD_X_LOCATION PROC NEAR
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2
@@ -1443,11 +1443,19 @@ GET_CURR_PLAYER_CMD_X_LOCATION PROC NEAR
     @@PLAYER1:
     RET
 ENDP GET_CURR_PLAYER_CMD_X_LOCATION
-
+;===========================================================================================
+; Function: DID_SOMEONE_WIN                                                                 |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Check If The Command MSG Has The Forbidden Character                   |
+;                    Set FORBIDDEN_CHAR_ERROR_FLAG To 1 If Found                            |
+; Description:                                                                              |
+;                    Check If The Command MSG Has The Forbidden Character                   | 
+;                    Set FORBIDDEN_CHAR_ERROR_FLAG To 1 If Found                            |
+;===========================================================================================
 CHECK_FORBIDDEN_CHARACTER PROC NEAR
     PUSH SI
     PUSH CX
-    TOUPPER CMD_MSG , CMD_BUFF_SIZE
+    TOUPPER CMD_MSG, CMD_BUFF_SIZE
     MOV SI, OFFSET CMD_MSG
     
     ;CHECK WHICH PLAYER 
@@ -1468,13 +1476,22 @@ CHECK_FORBIDDEN_CHARACTER PROC NEAR
     JMP @@CHECK_CHAR
 
     @@FORBIDDEN_FOUND:
-    MOV FORBIDDEN_CHAR_ERROR_FLAG,1
+    MOV FORBIDDEN_CHAR_ERROR_FLAG, 1
     @@EXIT:
     POP CX
     POP SI
     RET
 CHECK_FORBIDDEN_CHARACTER ENDP 
-
+;===========================================================================================
+; Function: WRITE_CMD                                                                       |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Save The Input From Buffer Into The Command MSG and                    |
+;                    Print It Into The Scrren                                               |
+; Description:                                                                              |
+;               Save The Input From Buffer Into The Command MSG and                         |
+;               Print It Into The Scrren                                                    |
+;               If Enter Key Is Pressed Then Send The Command To Execuation                 |
+;===========================================================================================
 WRITE_CMD PROC NEAR
     CMP AL, 13
     JNE @@NOT_ENTER
@@ -1538,7 +1555,17 @@ WRITE_CMD PROC NEAR
     INC BYTE PTR [SI]
     RET
 ENDP WRITE_CMD
-
+;===========================================================================================
+; Function: HANDLE_BUFFER                                                                   |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Handle The Input Taken From THe User And                               |
+;                    Execute The Appropiate Function Based On His Input                     |
+; Description:                                                                              |
+;              Input (Char) Taken From The User Is Check If :                               |
+;              1) Arrows                                                                    |
+;              2) Power Up (F1 TO F6)                                                       |
+;              3) Otherwise It Is Put In The Command Buffer                                 |
+;===========================================================================================
 HANDLE_BUFFER PROC NEAR
     CMP AH, 75
     JB @@NOT_ARROW
@@ -1626,7 +1653,15 @@ CONVERT_WORD_TO_STRING PROC NEAR
         POP DX
         RET
 CONVERT_WORD_TO_STRING ENDP
-
+;===========================================================================================
+; Function: SET_INITIAL_SCORE                                                               |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Set Initial Score For Each Player                                      |
+;                    Choose Minimum Of The Initial POints ENtered By Each Player            |
+; Description:                                                                              |
+;              Set Initial Score For Each Player by Choose Minimum Of                       |
+;              The Initial Points Entered By Each Player                                    |  
+;===========================================================================================
 SET_INITIAL_SCORE PROC NEAR
     MOV AX, P1_INITIAL_POINTS
     CMP P2_INITIAL_POINTS, AX
@@ -1640,22 +1675,37 @@ SET_INITIAL_SCORE PROC NEAR
     MOV PLAYER_2_SCORE_VALUE,AX
     RET
 SET_INITIAL_SCORE ENDP
-
+;===========================================================================================
+; Function: SET_PROCCESSOR_MSG                                                              |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Set The Processor Message To Be Displayed                              |
+; Description:                                                                              |
+;                    0 : First Player Processor                                             | 
+;                    1 : Second Player Processor                                            | 
+;                    2 : First And Second Player Processors "WHen Using Second Power UP"    | 
+;===========================================================================================
 SET_PROCCESSOR_MSG PROC NEAR
     TEST CURR_PROCESSOR_FLAG, 00000001B
     JZ @@PLAYER2ONLY
     TEST CURR_PROCESSOR_FLAG, 00010000B
     JNZ @@PLAYER1AND2
-    MOV PROCESSOR_CHARACTER, '0'
+    MOV PROCESSOR_CHARACTER, '1'
     RET
     @@PLAYER2ONLY:
-    MOV PROCESSOR_CHARACTER, '1'    
+    MOV PROCESSOR_CHARACTER, '0'    
     RET
     @@PLAYER1AND2:
     MOV PROCESSOR_CHARACTER, '2'    
     RET
 SET_PROCCESSOR_MSG ENDP
-
+;===========================================================================================
+; Function: DID_SOMEONE_WIN                                                                 |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Check If A Player Has Won The Game                                     |
+; Description:                                                                              |
+;                    Either A Player Score Reaches Zero                                     | 
+;                    or He/She Managed TO Put 105e In His/Her Opponent Registers            | 
+;===========================================================================================
 DID_SOMEONE_WIN MACRO GAME_ENDED
     CMP PLAYER_1_SCORE_VALUE , 0
     JBE GAME_ENDED
@@ -1667,8 +1717,17 @@ DID_SOMEONE_WIN MACRO GAME_ENDED
     CMP REGISTER_VALUE_FOUND_FLAG,0
     JA GAME_ENDED
 ENDM DID_SOMEONE_WIN
-
-
+;===========================================================================================
+; Function: CHECK_REGISTERS_VALUES                                                          |
+; TESTED:   TRUE                                                                            |
+; Input:                                                                                    |
+;               DI = The Value To Search For In All The Registers                           |
+; Output: <Action> = Set REGISTER_VALUE_FOUND_FLAG To The Result Of Searching For The       |
+;                    The Value In DI In Any Register                                        |
+; Description:                                                                              |
+;                    Search A Value In All Registers And Set The REGISTER_VALUE_FOUND_FLAG  | 
+;                    As Descriped In The Data Decleration                                   | 
+;===========================================================================================
 CHECK_REGISTERS_VALUES PROC NEAR
         PUSH AX
         PUSH CX
@@ -1709,6 +1768,7 @@ CHECK_REGISTERS_VALUES PROC NEAR
         POP AX
         RET
 CHECK_REGISTERS_VALUES ENDP
+
 MAIN PROC FAR
     ;Initialize Data Segment
     MOV AX, @DATA
