@@ -1204,6 +1204,8 @@ EXECUTE_SIXTH_POWER_UP PROC NEAR
 
         CALL GET_CURR_PLAYER_CMD_X_LOCATION
 
+        MOV CMD_BUFF[1], 0 ;Reset size
+        
         MOV CX, 30
         MOV BH, 0
         
