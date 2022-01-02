@@ -51,7 +51,7 @@ PLAYER_1_Z_FLAG_LABEL          DB       'ZF: ', '$'
 PLAYER_1_S_FLAG_LABEL          DB       'SF: ', '$'
 PLAYER_1_O_FLAG_LABEL          DB       'OF: ', '$'
 ;===========================================
-MESSAGE_1             DB      ' Have the project been finished?', '$'
+MESSAGE_1             DB      'Have the project been finished?', '$'
 MESSAGE_2             DB      'Yeah! We did it, Alaa!!!', '$'
 ;===========================================
 PLAYER_1_SCORE_VALUE           DW      0000

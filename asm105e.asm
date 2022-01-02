@@ -250,7 +250,7 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
                 CMP KEY,75 ;LEFT
                 JNE ISRIGHT
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP X,400
                 JBE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
@@ -259,7 +259,7 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         ISRIGHT:
                 CMP KEY,77 ;RIGHT
                 JNE ISUP
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP X,770
                 JAE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
@@ -268,7 +268,7 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         ISUP:
                 CMP KEY,72 ;UP
                 JNE ISDOWN
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP Y,50
                 JBE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
@@ -277,7 +277,7 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         ISDOWN:
                 CMP KEY,80 ;DOWN
                 JNE NOCHANGE
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP Y,300
                 JAE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
@@ -291,7 +291,7 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
                 CMP KEY,30 ;LEFT
                 JNE ISRIGHT
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP X,0
                 JBE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
@@ -300,7 +300,7 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         ISRIGHT:
                 CMP KEY,32 ;RIGHT
                 JNE ISUP
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP X,375
                 JAE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
@@ -309,7 +309,7 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         ISUP:
                 CMP KEY,17 ;UP
                 JNE ISDOWN
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP Y,50
                 JBE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
@@ -318,7 +318,7 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         ISDOWN:
                 CMP KEY,31 ;DOWN
                 JNE NOCHANGE
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP Y,300
                 JAE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
@@ -336,7 +336,7 @@ DRAW_BULLET1 MACRO KEY
         PUSH SI
                 CMP KEY,57 ;Space
                 JNE CHECKFINISH
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP BULLET1_MOVING,0
                 JNE CHECKFINISH
                 MOV BULLET1_MOVING,1
@@ -405,7 +405,7 @@ DRAW_BULLET2 MACRO KEY
         PUSH SI
                 CMP KEY,28 ;P
                 JNE CHECKFINISH
-                CONSUMEBUFFER
+                ;CONSUMEBUFFER
                 CMP BULLET2_MOVING,0
                 JNE CHECKFINISH
                 MOV BULLET2_MOVING,1
@@ -488,6 +488,10 @@ GAMENOTMOVING:
 GAMEISMOVING:
         mov ah,1
         int 16h
+        JZ @@BUFF_EMPTY
+        MOV AH, 0 ;CONSUME BUFFER
+        INT 16h
+@@BUFF_EMPTY:
         CMP BIRD_MOVING,0
         JE CONTINUE_P2
 CONTINUE_P1:
@@ -497,65 +501,85 @@ CONTINUE_P1:
 CONTINUE_P2:
         CMP BIRD_MOVING,0
         JE SKIPPING
-        mov ah,1
-        int 16h
         DRAW_PLAYER2 P2_Y P2_X AH
         DRAW_BULLET2 AH
         DRAW_BIRD2
-SKIPPING:
+SKIPPING:    
         RET
 ENDP MINI_GAME
 ;===================================================================
 ; END_MINI_GAME AND TARGET
 ;===================================================================
 END_MINI_GAME_P1 PROC
+        MOV BL, CURR_PLAYER_FLAG
+        MOV CURR_PLAYER_FLAG, 0
         CMP RANDOM0_4,0
         JNE CHECK1RANDOM1
         INC HIT_P1_1
-        RET
+        MOV AX, 1
+        JMP @@RETURN
 CHECK1RANDOM1:        
         CMP RANDOM0_4,1
         JNE CHECK1RANDOM2
         INC HIT_P1_2
-        RET
+        MOV AX, 2
+        JMP @@RETURN
 CHECK1RANDOM2:        
         CMP RANDOM0_4,2
         JNE CHECK1RANDOM3
         INC HIT_P1_3
-        RET
+        MOV AX, 3
+        JMP @@RETURN
 CHECK1RANDOM3:
         CMP RANDOM0_4,3
         JNE CHECK1RANDOM4
         INC HIT_P1_4
-        RET
+        MOV AX, 4
+        JMP @@RETURN
 CHECK1RANDOM4:
         CMP RANDOM0_4,4
         INC HIT_P1_5
+        MOV AX, 5
+        @@RETURN:
+        NEG AX
+        CALL DESCREASE_CURRENT_PLAYER_SCORE
+        MOV CURR_PLAYER_FLAG, BL
         RET
 ENDP END_MINI_GAME_P1
 END_MINI_GAME_P2 PROC
+        MOV BL, CURR_PLAYER_FLAG
+        MOV CURR_PLAYER_FLAG, 1
         CMP RANDOM0_4,0
         JNE @@CHECK2RANDOM1
         INC HIT_P2_1
-        RET
+        MOV AX, 1
+        JMP @@RETURN
 @@CHECK2RANDOM1:        
         CMP RANDOM0_4,1
         JNE @@CHECK2RANDOM2
         INC HIT_P2_2
-        RET
+        MOV AX, 2
+        JMP @@RETURN
 @@CHECK2RANDOM2:        
         CMP RANDOM0_4,2
         JNE @@CHECK2RANDOM3
         INC HIT_P2_3
-        RET
+        MOV AX, 3
+        JMP @@RETURN
 @@CHECK2RANDOM3:
         CMP RANDOM0_4,3
         JNE @@CHECK2RANDOM4
         INC HIT_P2_4
-        RET
+        MOV AX, 4
+        JMP @@RETURN
 @@CHECK2RANDOM4:
         CMP RANDOM0_4,4
         INC HIT_P2_5
+        MOV AX, 5
+        @@RETURN:
+        NEG AX
+        CALL DESCREASE_CURRENT_PLAYER_SCORE
+        MOV CURR_PLAYER_FLAG, BL
         RET
 ENDP END_MINI_GAME_P2 
 SET_TAREGT_X PROC
@@ -832,7 +856,7 @@ GENERATE_RANDOM PROC
         MOV RANDOM0_4,DX
         call    CalcNew   ; -> AX is a random number
         xor     dx, dx
-        mov     cx, 5000    
+        mov     cx, 250    
         div     cx        ; here dx contains the remainder - from 0 to 5
         MOV RANDOM0_99,DX
         POP CX
@@ -1614,11 +1638,15 @@ MAIN PROC FAR
     CALL UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION
     ;==================
     ;Chat Box
-    PRINT_STRING 1,35, NAME_1, RED
-    PRINT_STRING 7,35, MESSAGE_1, LIGHT_WHITE
+    PRINT_STRING 1, 35, NAME_1, RED
+    MOV DL, 2
+    ADD DL, P1_USERNAME_SIZE
+    PRINT_STRING DL, 35, MESSAGE_1, LIGHT_WHITE
 
-    PRINT_STRING 1,36, NAME_2, RED
-    PRINT_STRING 8,36, MESSAGE_2, LIGHT_WHITE
+    PRINT_STRING 1, 36, NAME_2, RED
+    MOV DL, 2
+    ADD DL, P2_USERNAME_SIZE
+    PRINT_STRING DL, 36, MESSAGE_2, LIGHT_WHITE
     ;==================
     PRINT_STRING 1, 3, PROCESSOR_MSG, LIGHT_YELLOW
 
