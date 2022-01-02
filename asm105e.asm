@@ -79,31 +79,68 @@ INCLUDE PARSER.INC
 INCLUDE CMD_PROC.INC
 ;GUI Commands
 INCLUDE GUI.INC
-
-
-drawPNG macro column,  row,  color,  Y,  X                 ;x,  y,  color...the last two parameters are the dynamic position of the pixel. Assumes that mov ah,  0ch was priorly done.
-            mov ch, 0                                                      ;Because all images are db arrays.                                                                             
+;===========================================================================================
+; Function: drawPNG                                                                         |
+; TESTED:   TRUE                                                                            |
+; Input:                                                                                    |
+;                <INT:X> = The X-cordinate of the start point                               |
+;                <INT:Y> = The Y-cordinate of the start point                               |
+;                <INT:row> = The row relative to the png frame                              |
+;                <INT:column> = The column relative to the png frame                        |
+;                <INT:COLOR> = The color needed to draw the pixel by.                       |
+; Output: <Action> = Draw a pixel                                                           |
+; Description:                                                                              |
+;               Draw a pixel in a specefied position                                        |
+;===========================================================================================
+drawPNG macro column,  row,  color,  Y,  X ;row and column are relative to the png frame
+            mov ch, 0                      ;Because all images are db arrays.                                                                             
             mov dh, 0
             mov dl,row
             mov cl,column
             mov al,color
             ;Pixel Loaction
-            add dx,Y                                                    ;X and Y correspond to the pixel loction.
+            add dx,Y                       ;X and Y correspond to the start of the png frame.
             add cx,X
             int 10h
 endm drawPNG
-savePNG macro column,  row,  color,  Y,  X                 ;x,  y,  color...the last two parameters are the dynamic position of the pixel. Assumes that mov ah,  0ch was priorly done.
+;===========================================================================================
+; Function: savePNG                                                                         |
+; TESTED:   TRUE                                                                            |
+; Input:                                                                                    |
+;                <INT:X> = The X-cordinate of the start point                               |
+;                <INT:Y> = The Y-cordinate of the start point                               |
+;                <INT:row> = The row relative to the png frame                              |
+;                <INT:column> = The column relative to the png frame                        |
+;                <INT:COLOR> = The color needed to save the pixel by.                       |
+; Output: <Action> = save a pixel                                                           |
+; Description:                                                                              |
+;               save a pixel from a specefied position                                      |
+;===========================================================================================
+savePNG macro column,  row,  color,  Y,  X ;row and column are relative to the png frame
             mov AH,0Dh
-            mov ch, 0                                                      ;Because all images are db arrays.                                                                             
+            mov ch, 0                      ;Because all images are db arrays.                                                                             
             mov dh, 0
             mov dl,  row
             mov cl,  column
             ;Pixel Loaction
-            add dx,  Y                                                    ;X and Y correspond to the pixel loction.
+            add dx,  Y                     ;X and Y correspond to the start of the png frame.
             add cx,  X
             int 10h
             mov color,al
 endm savePNG
+;===========================================================================================
+; Function: DRAW_MOVING_OBJECT                                                              |
+; TESTED:   TRUE                                                                            |
+; Input:                                                                                    |
+;                <OFFSET:IMG> = the offset of the img                                       |
+;                <OFFSET:IMGB> = the offset of the img background                           |
+;                <INT:x> = The X-cordinate of the start point                               |
+;                <INT:y> = The Y-cordinate of the start point                               |
+; Output: <Action> = Draw an img                                                            |
+; Description:                                                                              |
+;               Draw an img in specefied position                                           |
+;               Saving an img from a specefied position                                     |
+;===========================================================================================
 DRAW_MOIVNG_OBJECT MACRO img,imgB,imgSize,y,x ;imgB and img are the same width and hight
                 local while
         PUSH AX
@@ -114,12 +151,12 @@ DRAW_MOIVNG_OBJECT MACRO img,imgB,imgSize,y,x ;imgB and img are the same width a
                 mov bx,  offset img
                 mov si, offset imgB
 while:
-                savePNG [si], [si+1], [si+2],  y,  x
+                savePNG [si], [si+1], [si+2],  y,  x ;save the old pixwl
                 mov ah, 0ch
-                drawPNG [bx], [bx+1], [bx+2],  y,  x
+                drawPNG [bx], [bx+1], [bx+2],  y,  x ;draw the new pixel
                 add bx, 3
                 add si, 3
-                cmp bx, offset imgSize                                       ;Time to end the loop whenever the offset is outside the image.
+                cmp bx, offset imgSize               ;Terminate the loop whenever the offset is outside the image.
                 JNE while  
         POP SI
         POP DX
@@ -128,20 +165,33 @@ while:
         POP AX 
 ENDM DRAW_MOIVNG_OBJECT
 
-;===============================================================================      
+;===========================================================================================
+;===========================================================================================
+; Function: DRAW_BIRD1/2                                                                    |
+; TESTED:   TRUE                                                                            |
+; Input:    brids X and Y Coordinates from the memory                                       |
+; Output: <Action> = update bird location                                                   |
+; Description:                                                                              |
+;               when bird reaches end end game                                              |
+;===========================================================================================      
 DRAW_BIRD1  MACRO 
         LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND,CHECKBULLET2
         PUSH AX
         PUSH CX
         PUSH DX
+        ;If bird is not moving means game didnt start so no change should happen
         CMP BIRD_MOVING,0
         JNE CHECKEND
         JMP FAR PTR NOCHANGE
 CHECKEND:
+        ;If bird reaches end should end game with draw no one caught the bird
         CMP BIRD1_X,410
         JNE CHECKSPEED
         MOV BIRD_MOVING,0
+        ;If both birds not moving should end game
         CALL MINI_GAME_MOVING
+        ;If bird reaches end should end game with draw no one caught the bird
+        ;draw all the previous background and reset position
         call DRAW_BIRDUP1_BACKGROUND
         CALL DRAW_BIRDDOWN1_BACKGROUND
         call DRAW_PLAYER1_BACKGROUND
@@ -160,6 +210,7 @@ CHECKBULLET2:
         call DRAW_BULLET2_BACKGROUND
         MOV BULLET2_MOVING,0
 CHECKSPEED:
+        ;Some Delay to help ease the bird
         MOV AX,TIME
         MOV CX,BIRD_SPEED
         DIV CX
@@ -167,6 +218,7 @@ CHECKSPEED:
         JE SHIFT
         JMP FAR PTR NOCHANGE
 SHIFT:
+        ;check if the wing is up then the next move is wing down
         CMP BIRDWING1,1
         JNE CHECKDOWN
         DEC BIRDWING1
@@ -189,14 +241,19 @@ DRAW_BIRD2  MACRO
         PUSH AX
         PUSH CX
         PUSH DX
+        ;If bird is not moving means game didnt start so no change should happen
         CMP BIRD_MOVING,0
         JNE CHECKEND
         JMP FAR PTR NOCHANGE
 CHECKEND:
+        ;If bird reaches end should end game with draw no one caught the bird
         CMP BIRD2_X,10
         JNE CHECKSPEED
         MOV BIRD_MOVING,0
+        ;If both birds not moving should end game
         CALL MINI_GAME_MOVING
+        ;If bird reaches end should end game with draw no one caught the bird
+        ;draw all the previous background and reset position
         call DRAW_BIRDUP2_BACKGROUND
         CALL DRAW_BIRDDOWN2_BACKGROUND
         call DRAW_PLAYER2_BACKGROUND
@@ -212,6 +269,7 @@ CHECKBULLET2:
         call DRAW_BULLET2_BACKGROUND
         MOV BULLET2_MOVING,0
 CHECKSPEED:
+        ;Some Delay to help ease the bird
         MOV AX,TIME
         MOV CX,BIRD_SPEED
         DIV CX
@@ -219,6 +277,7 @@ CHECKSPEED:
         JE SHIFT
         JMP FAR PTR NOCHANGE
 SHIFT:
+        ;check if the wing is up then the next move is wing down
         CMP BIRDWING2,1
         JNE CHECKDOWN
         DEC BIRDWING2
@@ -236,21 +295,32 @@ NOCHANGE:
         POP CX
         POP AX
 ENDM DRAW_BIRD2
-;=============================================================================== 
+;===========================================================================================
+;===========================================================================================
+; Function: CONSUMEBUFFER                                                                   |
+; TESTED:   TRUE                                                                            |
+; Input:    none                                                                            |
+; Output: <Action> = CONUSEM BUFFER                                                         |
+;===========================================================================================   
 CONSUMEBUFFER MACRO 
         PUSH AX
         mov ah,0;CONSUME BUFFER
         int 16h      
         POP AX
 ENDM CONSUMEBUFFER
-;========================================================================
-;This macro checks the buttons and take a certian action correspondingly
-;========================================================================
+;===========================================================================================
+;These macros checks the buttons and take a certian action correspondingly
+;===========================================================================================
+;===========================================================================================
+; Function: DRAW_PLAYER1                                                                    |
+; TESTED:   TRUE                                                                            |
+; Input:    Player X and Y Coordinates from the memory and key pressed                      |
+; Output: <Action> = update Player location                                                 |
+;===========================================================================================    
 DRAW_PLAYER1 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
                 CMP KEY,75 ;LEFT
                 JNE ISRIGHT
-                ;CONSUMEBUFFER
                 CMP X,400
                 JBE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
@@ -259,7 +329,6 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         ISRIGHT:
                 CMP KEY,77 ;RIGHT
                 JNE ISUP
-                ;CONSUMEBUFFER
                 CMP X,770
                 JAE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
@@ -268,7 +337,6 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         ISUP:
                 CMP KEY,72 ;UP
                 JNE ISDOWN
-                ;CONSUMEBUFFER
                 CMP Y,50
                 JBE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
@@ -277,7 +345,6 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         ISDOWN:
                 CMP KEY,80 ;DOWN
                 JNE NOCHANGE
-                ;CONSUMEBUFFER
                 CMP Y,300
                 JAE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
@@ -285,13 +352,12 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         DRAW:     
                 DRAW_MOIVNG_OBJECT shooter shooter1Background shooterSize P1_Y P1_X      
         NOCHANGE:
-
+        ;no key is pressed so no change
 ENDM DRAW_PLAYER1 
 DRAW_PLAYER2 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
                 CMP KEY,30 ;LEFT
                 JNE ISRIGHT
-                ;CONSUMEBUFFER
                 CMP X,0
                 JBE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
@@ -300,7 +366,6 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         ISRIGHT:
                 CMP KEY,32 ;RIGHT
                 JNE ISUP
-                ;CONSUMEBUFFER
                 CMP X,375
                 JAE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
@@ -309,7 +374,6 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         ISUP:
                 CMP KEY,17 ;UP
                 JNE ISDOWN
-                ;CONSUMEBUFFER
                 CMP Y,50
                 JBE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
@@ -318,7 +382,6 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         ISDOWN:
                 CMP KEY,31 ;DOWN
                 JNE NOCHANGE
-                ;CONSUMEBUFFER
                 CMP Y,300
                 JAE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
@@ -328,15 +391,22 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         NOCHANGE:
 
 ENDM DRAW_PLAYER2
+;===========================================================================================
+;===========================================================================================
+; Function: DRAW_BULLET1                                                                    |
+; TESTED:   TRUE                                                                            |
+; Input:    key pressed                                                                     |
+; Output: <Action> = update Bullet location if bullet hit bird then earn score              |
+;===========================================================================================   
 DRAW_BULLET1 MACRO KEY
         LOCAL NOCHANGE,CHECKFINISH,CHECKSPACE,CHECKMOVING,UNHIT
         PUSH AX
         PUSH CX
         PUSH DX
         PUSH SI
+                ;if space is pressed then shoot a bullet unless the bullet is shot before 
                 CMP KEY,57 ;Space
                 JNE CHECKFINISH
-                ;CONSUMEBUFFER
                 CMP BULLET1_MOVING,0
                 JNE CHECKFINISH
                 MOV BULLET1_MOVING,1
@@ -348,6 +418,8 @@ DRAW_BULLET1 MACRO KEY
                 SUB BULLET1_Y,20
                 DRAW_MOIVNG_OBJECT bullet bullet1Background bulletSize Bullet1_Y Bullet1_X 
         CHECKFINISH:
+                ;if bullet hit the bird update location and earn score draw all backgrounds
+                ;if bullet is at y = 20 that means the bullet reached the roof
                 CMP BULLET1_Y,20
                 JNE CHECKMOVING
                 MOV BULLET1_MOVING,0
@@ -360,6 +432,7 @@ DRAW_BULLET1 MACRO KEY
                 ADD SI,15
                 CMP SI,Bird1_X
                 JBE UNHIT
+                ;hit the bird then we need to give it score
                 CALL END_MINI_GAME_P1
                 call DRAW_BIRDUP1_BACKGROUND
                 CALL DRAW_BIRDDOWN1_BACKGROUND
@@ -510,6 +583,12 @@ ENDP MINI_GAME
 ;===================================================================
 ; END_MINI_GAME AND TARGET
 ;===================================================================
+;===========================================================================================
+; Function: END AND UPDATE SCORE                                                            |
+; TESTED:   TRUE                                                                            |
+; Input:    none                                                                            |
+; Output: <Action> = update score                                                           |
+;===========================================================================================   
 END_MINI_GAME_P1 PROC
         MOV BL, CURR_PLAYER_FLAG
         MOV CURR_PLAYER_FLAG, 0
@@ -582,6 +661,12 @@ END_MINI_GAME_P2 PROC
         MOV CURR_PLAYER_FLAG, BL
         RET
 ENDP END_MINI_GAME_P2 
+;===========================================================================================
+; Function: set target                                                                      |
+; TESTED:   TRUE                                                                            |
+; Input:    none                                                                            |
+; Output: <Action> = update the x location of the target from the random location           |
+;===========================================================================================   
 SET_TAREGT_X PROC
         CMP RANDOM0_4,0
         JNE @@CHECK2RANDOM1
@@ -610,6 +695,12 @@ ENDP SET_TAREGT_X
 ;======================================================================================================================================
 ; Draw the previos background of the shooter
 ;======================================================================================================================================
+;===========================================================================================
+; Function: DRAWBACKGROUND                                                                  |
+; TESTED:   TRUE                                                                            |
+; Input:    none                                                                            |
+; Output: <Action> = Draw BackGround of the selected procedure                              |
+;===========================================================================================   
 DRAW_PLAYER1_BACKGROUND PROC NEAR
         PUSH CX
         PUSH DX
@@ -828,6 +919,7 @@ DRAW_TARGET_BACKGROUND PROC NEAR
         POP CX
         RET
 DRAW_TARGET_BACKGROUND ENDP
+;if bird not moving end game :D
 MINI_GAME_MOVING PROC
         CMP BIRD_MOVING,0
         JE @@NEXT
@@ -841,6 +933,12 @@ MINI_GAME_MOVING PROC
         CALL DRAW_TARGET_BACKGROUND
         RET
 MINI_GAME_MOVING ENDP
+;===========================================================================================
+; Function: GenerateRandom                                                                  |
+; TESTED:   TRUE                                                                            |
+; Input:    none                                                                            |
+; Output: <Action> = change the random values of RAND0_4 rand0_99                           |
+;===========================================================================================   
 GENERATE_RANDOM PROC 
         PUSH AX
         PUSH BX
@@ -873,7 +971,7 @@ RAND PROC
     mov     [SEED], ax          ; Update seed = return value
     ret
 ENDP RAND
-
+;===========================================================================================
 UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION PROC NEAR
     TEST GAME_LEVEL , 1
     JNZ @@EXIT
