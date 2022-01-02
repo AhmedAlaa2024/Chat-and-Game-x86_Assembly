@@ -846,18 +846,18 @@ GENERATE_RANDOM PROC
         PUSH BX
         PUSH DX
         PUSH CX
-        MOV     AH, 00h   ; interrupt to get system timer in CX:DX 
+        MOV     AH, 00h   ; get system time
         INT     1AH
         mov     [SEED], dx
-        call    CalcNew   ; -> AX is a random number
+        call    RAND   ; AX is now a random number
         xor     dx, dx
         mov     cx, 5    
         div     cx        ; here dx contains the remainder - from 0 to 5
         MOV RANDOM0_4,DX
-        call    CalcNew   ; -> AX is a random number
+        call    RAND   ; AX is now a random number
         xor     dx, dx
         mov     cx, 250    
-        div     cx        ; here dx contains the remainder - from 0 to 5
+        div     cx        ; here dx contains the remainder - from 0 to 250 OR WHAT EVER I WANT TO TEST AT
         MOV RANDOM0_99,DX
         POP CX
         POP DX
@@ -865,17 +865,14 @@ GENERATE_RANDOM PROC
         POP AX
         ret
 ENDP GENERATE_RANDOM
-; ----------------
-; inputs: none  (modifies PRN seed variable)
-; clobbers: DX.  returns: AX = next random number
-CalcNew PROC 
-    mov     ax, 25173          ; LCG Multiplier
-    mul     word ptr [SEED]     ; DX:AX = LCG multiplier * seed
-    add     ax, 13849          ; Add LCG increment value
-    ; Modulo 65536, AX = (multiplier*seed+increment) mod 65536
+RAND PROC 
+    mov     ax, 25173          ;OUR A,B VALUES
+    mul     word ptr [SEED]    ;MUL WITH THE SEED
+    add     ax, 13849          ;ADD B value
+    ; Modulo 65536, AX = (multiplier*seed+increment) mod 65536->FFFF+1
     mov     [SEED], ax          ; Update seed = return value
     ret
-ENDP CalcNew
+ENDP RAND
 
 UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION PROC NEAR
     TEST GAME_LEVEL , 1
@@ -1081,6 +1078,8 @@ EXECUTE_SIXTH_POWER_UP PROC NEAR
         PUSH BX
         PUSH SI
         PUSH DI
+        ;Maiking an error while typing will loss you the chance from this power up
+        ;as any good programmer should know the syntax well :D
         TEST GAME_LEVEL,1
         JZ @@RETURN
         MOV BL, CMD_BUFF[1]
@@ -1147,13 +1146,11 @@ EXECUTE_SIXTH_POWER_UP PROC NEAR
         CMP BX,9
         JNE @@SECOND_VAL
         ;HERE MEANS ALL GOOD SHOULD EXCEUCTE AND EARSE BUFFER
-        ; MOV PLAYER_1_SI_VALUE,SI
-        ; MOV PLAYER_1_DI_VALUE,DI
-
-        ; CHECK_REGISTERS_VALUES DI
-        ; CMP REGISTER_VALUE_FOUND_FLAG,0
-        ; JE @@REST
-        ;JMP @@REST
+        CMP DI,105EH
+        JE @@REST
+        CALL CHECK_REGISTERS_VALUES
+        CMP REGISTER_VALUE_FOUND_FLAG,0
+        JA @@REST
         XCHG SI,DI
         CALL CHECK_REGISTERS_VALUES
         XCHG SI,DI
@@ -1482,7 +1479,7 @@ HANDLE_BUFFER PROC NEAR
     CALL EXECUTE_FIFTH_POWER_UP
     JMP @@RETURN
     @@SIXTH_POWER_UP:
-    CMP AH, 64 ; F5 SCAN Code
+    CMP AH, 64 ; F6 SCAN Code
     JNE @@WRITE_BUFFER_CMD
     CAN_USE_POWER_UP @@RETURN, 50
     CALL EXECUTE_SIXTH_POWER_UP
@@ -1566,6 +1563,11 @@ DID_SOMEONE_WIN MACRO GAME_ENDED
     JBE GAME_ENDED
     CMP PLAYER_2_SCORE_VALUE , 0
     JBE GAME_ENDED
+    ;THE SECRET WORD SHHHH!
+    MOV DI,105EH
+    CALL CHECK_REGISTERS_VALUES
+    CMP REGISTER_VALUE_FOUND_FLAG,0
+    JA GAME_ENDED
 ENDM DID_SOMEONE_WIN
 
 
@@ -1652,11 +1654,6 @@ MAIN PROC FAR
     ;==================
     PRINT_STRING 1, 3, PROCESSOR_MSG, LIGHT_YELLOW
 
-;     MOV PLAYER_1_BX_VALUE,0123   
-;     MOV DI,0123
-;     CHECK_REGISTERS_VALUES DI
-;     MOV DI,REGISTER_VALUE_FOUND_FLAG
-;     MOV PLAYER_1_CX_VALUE,DI    
 
     ;=================
     MOV BP, 0
@@ -1701,9 +1698,19 @@ MAIN PROC FAR
     ;DELAY:
     ;LOOP DELAY
     ;CMP BP,0FFFFH
-    DID_SOMEONE_WIN @@GAME_ENDED
+    DID_SOMEONE_WIN @@GAME_ENDED;????????
     JMP UPDATE_TIMER
     @@GAME_ENDED:
+    CMP REGISTER_VALUE_FOUND_FLAG , 0
+    JE @@CHECK_SCORE
+    CMP REGISTER_VALUE_FOUND_FLAG , 255
+    JA @@CHECKPLAYER2
+    SHOW_GAME_ENDED_SCRREN NAME_1
+    JMP @@SAFE_RETURN
+    @@CHECKPLAYER2:
+    SHOW_GAME_ENDED_SCRREN NAME_2
+    JMP @@SAFE_RETURN
+    @@CHECK_SCORE:
     CMP PLAYER_1_SCORE_VALUE , 0
     SHOW_GAME_ENDED_SCRREN NAME_2
     JMP @@SAFE_RETURN
