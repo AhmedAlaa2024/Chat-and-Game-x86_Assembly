@@ -980,13 +980,27 @@ UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION PROC NEAR
     @@EXIT:
     RET
 UPDATE_FORBIDDEN_CHARACTER_REPRESENTATION ENDP
-
+;===========================================================================================
+; Function: UPDATE_CURRENT_PROCESSOR_REPRESENTATION                                         |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Display The Processor Message In The Screen                            |
+; Description:                                                                              |
+;                    Call SET_PROCCESSOR_MSG Then PRINT_STRING                              |
+;===========================================================================================
 UPDATE_CURRENT_PROCESSOR_REPRESENTATION PROC NEAR
     CALL SET_PROCCESSOR_MSG
     PRINT_STRING 13, 3, PROCESSOR_CHARACTER, LIGHT_YELLOW
     RET
 UPDATE_CURRENT_PROCESSOR_REPRESENTATION ENDP 
-
+;===========================================================================================
+; Function: CAN_USE_POWER_UP                                                                |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Jump to "No" Label If Current Player Doesn't Have                      |
+;                    "COST" In His/Her Score                                                |
+; Description:                                                                              |
+;                    Jump to "No" Label If Current Player Doesn't Have                      |
+;                    "COST" In His/Her Score                                                |
+;===========================================================================================
 CAN_USE_POWER_UP MACRO NO, COST
     LOCAL @@PLAYER_2,  @@EXIT_M
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
