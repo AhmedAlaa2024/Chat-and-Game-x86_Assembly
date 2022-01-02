@@ -1317,10 +1317,10 @@ EXECUTE_CURRENT_COMMAND PROC NEAR
     RET
 EXECUTE_CURRENT_COMMAND ENDP
 
-;=============================================
-; Subtract AX value from current player score
-;   Should check for score reaching zero
-;=============================================
+;===========================================================================================
+; Subtract AX value from current player score                                               |
+;   Should check for score reaching zero                                                    |
+;===========================================================================================
 DESCREASE_CURRENT_PLAYER_SCORE PROC NEAR
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2
@@ -1331,10 +1331,10 @@ DESCREASE_CURRENT_PLAYER_SCORE PROC NEAR
     @@EXIT:
     RET
 DESCREASE_CURRENT_PLAYER_SCORE ENDP
-;=============================================
-;       Get current player's cmd box
-;       x location and store it in SI
-;=============================================
+;===========================================================================================
+;       Get current player's cmd box                                                        |
+;       x location and store it in SI                                                       |
+;===========================================================================================
 GET_CURR_PLAYER_CMD_X_LOCATION PROC NEAR
     TEST CURR_PLAYER_FLAG, 1 ;ZF = 1 if Player 1
     JNZ @@PLAYER2
@@ -1345,11 +1345,19 @@ GET_CURR_PLAYER_CMD_X_LOCATION PROC NEAR
     @@PLAYER1:
     RET
 ENDP GET_CURR_PLAYER_CMD_X_LOCATION
-
+;===========================================================================================
+; Function: DID_SOMEONE_WIN                                                                 |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Check If The Command MSG Has The Forbidden Character                   |
+;                    Set FORBIDDEN_CHAR_ERROR_FLAG To 1 If Found                            |
+; Description:                                                                              |
+;                    Check If The Command MSG Has The Forbidden Character                   | 
+;                    Set FORBIDDEN_CHAR_ERROR_FLAG To 1 If Found                            |
+;===========================================================================================
 CHECK_FORBIDDEN_CHARACTER PROC NEAR
     PUSH SI
     PUSH CX
-    TOUPPER CMD_MSG , CMD_BUFF_SIZE
+    TOUPPER CMD_MSG, CMD_BUFF_SIZE
     MOV SI, OFFSET CMD_MSG
     
     ;CHECK WHICH PLAYER 
@@ -1370,13 +1378,22 @@ CHECK_FORBIDDEN_CHARACTER PROC NEAR
     JMP @@CHECK_CHAR
 
     @@FORBIDDEN_FOUND:
-    MOV FORBIDDEN_CHAR_ERROR_FLAG,1
+    MOV FORBIDDEN_CHAR_ERROR_FLAG, 1
     @@EXIT:
     POP CX
     POP SI
     RET
 CHECK_FORBIDDEN_CHARACTER ENDP 
-
+;===========================================================================================
+; Function: WRITE_CMD                                                                       |
+; TESTED:   TRUE                                                                            |
+; Output: <Action> = Save The Input From Buffer Into The Command MSG and                    |
+;                    Print It Into The Scrren                                               |
+; Description:                                                                              |
+;               Save The Input From Buffer Into The Command MSG and                         |
+;               Print It Into The Scrren                                                    |
+;               If Enter Key Is Pressed Then Send The Command To Execuation                 |
+;===========================================================================================
 WRITE_CMD PROC NEAR
     CMP AL, 13
     JNE @@NOT_ENTER
@@ -1443,10 +1460,13 @@ ENDP WRITE_CMD
 ;===========================================================================================
 ; Function: HANDLE_BUFFER                                                                   |
 ; TESTED:   TRUE                                                                            |
-; Output: <Action> = Conversion from 4-digit number to string                               |
-;                    This will be saved in STR_TEMP(SIZE : 4)                               |
+; Output: <Action> = Handle The Input Taken From THe User And                               |
+;                    Execute The Appropiate Function Based On His Input                     |
 ; Description:                                                                              |
-;              Convert the number digit by digit to char by char and put it in the variable |
+;              Input (Char) Taken From The User Is Check If :                               |
+;              1) Arrows                                                                    |
+;              2) Power Up (F1 TO F6)                                                       |
+;              3) Otherwise It Is Put In The Command Buffer                                 |
 ;===========================================================================================
 HANDLE_BUFFER PROC NEAR
     CMP AH, 75
@@ -1562,8 +1582,8 @@ SET_INITIAL_SCORE ENDP
 ; TESTED:   TRUE                                                                            |
 ; Output: <Action> = Set The Processor Message To Be Displayed                              |
 ; Description:                                                                              |
-;                    0 : Second Player Processor                                            | 
-;                    1 : First Player Processor                                             | 
+;                    0 : First Player Processor                                             | 
+;                    1 : Second Player Processor                                            | 
 ;                    2 : First And Second Player Processors "WHen Using Second Power UP"    | 
 ;===========================================================================================
 SET_PROCCESSOR_MSG PROC NEAR
