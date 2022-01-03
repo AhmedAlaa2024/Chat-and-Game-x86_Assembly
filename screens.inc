@@ -320,7 +320,7 @@ PLAYER_1_INITIALIZE_REG  PROC
                     GET_CHAR
                     CMP AL,08H
                     JZ @@BACKSPACE
-                    CMP AL,10
+                    CMP AL,13
                     JZ @@ENTER
 
                     CHARTOUPPER AL
@@ -448,7 +448,7 @@ PLAYER_2_INITIALIZE_REG  PROC
                     GET_CHAR
                     CMP AL,08H
                     JZ @@BACKSPACE
-                    CMP AL,10
+                    CMP AL,13
                     JZ @@ENTER
 
                     CHARTOUPPER AL
