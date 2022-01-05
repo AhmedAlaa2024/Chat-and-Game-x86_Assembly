@@ -57,7 +57,8 @@ PARSE_ERROR_FLAG DB 0
 FORBIDDEN_CHAR_ERROR_FLAG DB 0
 GAME_LEVEL DB 0
 
-
+SEND_VALUE db ?
+RECIEVE_VALUE db ?
 ;Player data
 INCLUDE P_DATA.inc
 ;Character macros
@@ -1597,6 +1598,8 @@ ENDP WRITE_CMD
 ;              3) Otherwise It Is Put In The Command Buffer                                 |
 ;===========================================================================================
 HANDLE_BUFFER PROC NEAR
+    MOV SEND_VALUE,AL
+    CALL SEND_CHAR
     ;Check if power up key
     @@FIRST_POWER_UP:
     CMP AH, 59 ; F1 SCAN Code
@@ -1639,6 +1642,52 @@ HANDLE_BUFFER PROC NEAR
     CONSUMEBUFFER
     RET
 HANDLE_BUFFER ENDP
+
+HANDLE_RECIEVE PROC NEAR
+    CALL RECIEVE_CHAR
+    MOV AL, RECIEVE_VALUE
+    ;Check if power up key
+    @@FIRST_POWER_UP:
+    CMP AH, 59 ; F1 SCAN Code
+    JNE @@SECOND_POWER_UP
+    CAN_USE_POWER_UP @@RETURN, 5
+    CALL EXECUTE_FIRST_POWER_UP 
+    JMP @@RETURN
+    @@SECOND_POWER_UP:
+    CMP AH, 60 ; F2 SCAN Code
+    JNE @@THIRD_POWER_UP
+    CAN_USE_POWER_UP @@RETURN, 3
+    CALL EXECUTE_SECOND_POWER_UP 
+    JMP @@RETURN
+    @@THIRD_POWER_UP:
+    CMP AH, 61 ; F3 SCAN Code
+    JNE @@FORTH_POWER_UP
+    CAN_USE_POWER_UP @@RETURN, 8
+    CALL EXECUTE_THIRD_POWER_UP 
+    JMP @@RETURN
+    @@FORTH_POWER_UP:
+    CMP AH, 62 ; F4 SCAN Code
+    JNE @@FIFTH_POWER_UP
+    ; Call Forth Power Up 
+    JMP @@RETURN
+    @@FIFTH_POWER_UP:
+    CMP AH, 63 ; F5 SCAN Code
+    JNE @@SIXTH_POWER_UP
+    CAN_USE_POWER_UP @@RETURN, 30
+    CALL EXECUTE_FIFTH_POWER_UP
+    JMP @@RETURN
+    @@SIXTH_POWER_UP:
+    CMP AH, 64 ; F6 SCAN Code
+    JNE @@WRITE_BUFFER_CMD
+    CAN_USE_POWER_UP @@RETURN, 50
+    CALL EXECUTE_SIXTH_POWER_UP
+    JMP @@RETURN
+    @@WRITE_BUFFER_CMD: 
+    CALL WRITE_CMD
+    @@RETURN:
+    ;CONSUMEBUFFER
+    RET
+HANDLE_RECIEVE ENDP
 ;===========================================================================================
 ; Function: CONVERT_WORD_TO_STRING                                                          |
 ; TESTED:   TRUE                                                                            |
@@ -1793,12 +1842,45 @@ CHECK_REGISTERS_VALUES PROC NEAR
         RET
 CHECK_REGISTERS_VALUES ENDP
 
+INIT PROC NEAR
+    MOV AH, 0
+    MOV DX, 0
+    MOV AL, 0C3H
+    INT 14H
+    RET
+INIT ENDP
+
+SEND_CHAR PROC NEAR
+    PUSH AX
+    PUSH DX
+    MOV DX, 3FDH
+    IN AL, DX
+    AND AL, 00100000B
+    JZ stop
+
+    MOV DX, 3F8H
+    MOV AL, SEND_VALUE
+    OUT DX, AL
+    stop:
+    POP DX
+    POP AX
+    RET
+SEND_CHAR ENDP
+
+RECIEVE_CHAR PROC NEAR
+    MOV DX, 3F8H
+    IN AL, DX
+    MOV RECIEVE_VALUE, al
+    exit:
+    RET
+RECIEVE_CHAR ENDP
+
 MAIN PROC FAR
     ;Initialize Data Segment
     MOV AX, @DATA
     MOV DS, AX
     ;End initialize
-
+    CALL INIT
     RUN_STRT_SCREEN P1_USERNAME_BUFF, P1_INITIAL_POINTS
     RUN_STRT_SCREEN P2_USERNAME_BUFF, P2_INITIAL_POINTS
     GET_FORBIDDEN_CHAR P2_FORBIDDEN_CHARACTER
@@ -1853,7 +1935,12 @@ MAIN PROC FAR
     CALL HANDLE_BUFFER
     SKIP_HANDLE:
     
-
+    MOV DX, 3FDH
+    IN AL, DX
+    AND AL, 1
+    JZ @@SKIP_RECIEVE
+    CAll HANDLE_RECIEVE
+    @@SKIP_RECIEVE:
     MOV DX,BP
     AND DX,0080H
     SHR DX,7
