@@ -1,4 +1,7 @@
 ;Screen Data
+MAIN_SCREEN_MSG1 DB 'To start chatting press F1$'
+MAIN_SCREEN_MSG2 DB 'To start the game press F2$'
+MAIN_SCREEN_MSG3 DB 'To end the program press ESC$'
 STRT_NAME_PROMPT DB 'Please enter your name: (Must start with a letter)',13,10,'$'
 STRT_POINT_PROMPT DB 'Enter your suggested initial points: (4-Digit max)',13,10,'$'
 FORBIDDEN_CHAR_PROMPT DB 'Enter your forbidden char: (1 Character Max)',13,10,'$'

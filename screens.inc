@@ -8,13 +8,9 @@
 ;REGISTERS CHANGED: AH  AL
 ;=============================================================================
 SET_VIDEO MACRO
-    PUSH AX
-    PUSH BX
     MOV AX,4F02H
     MOV BX,103H
     INT 10H
-    POP BX
-    POP AX
 ENDM SET_VIDEO
 
 ;=============================================================================
@@ -244,7 +240,7 @@ ENDM GET_POINTS
 RUN_STRT_SCREEN MACRO USERNAME, POINTS
     LOCAL GET_AGAIN
 
-    SET_VIDEO TEXT_MODE
+    SET_VIDEO
     DISPLAY_MSG STRT_NAME_PROMPT
     GET_USERNAME USERNAME
     DISPLAY_NEWLINE
@@ -642,3 +638,59 @@ PLAYER_2_RUN_INITIALIZATION_SCREEN   PROC
         RET
 ENDP    PLAYER_2_RUN_INITIALIZATION_SCREEN
 ;==============================================================
+RUN_MAIN_SCREEN PROC NEAR
+    SET_VIDEO
+
+    MOV BH, 0
+
+    ;MOVE CURSOR
+    MOV AH, 02
+    MOV DH , 10 
+    MOV DL, 30
+    INT 10H
+
+    MOV AH, 09H
+    MOV DX, OFFSET MAIN_SCREEN_MSG1
+    INT 21H
+
+    MOV AH, 02
+    MOV DH , 15 
+    MOV DL, 30
+    INT 10H
+
+    MOV AH, 09H
+    MOV DX, OFFSET MAIN_SCREEN_MSG2
+    INT 21H
+
+    MOV AH, 02
+    MOV DH , 20
+    MOV DL, 30
+    INT 10H
+
+    MOV AH, 09H
+    MOV DX, OFFSET MAIN_SCREEN_MSG3
+    INT 21H
+
+    @@GET_KEY:
+    MOV AH, 1
+    INT 16h
+    JZ @@GET_KEY 
+    
+    CMP AH, 59 ; F1 SCAN Code
+    JE @@Chatting
+
+    CMP AH, 60 ; F2 SCAN Code
+    JE @@Game
+
+    CMP AH, 01
+    JE @@EXIT
+    JMP @@GET_KEY
+    
+    @@EXIT:
+    ;Safely return to OS
+    MOV AX, 4C00H
+    INT 21H
+    @@Game:
+    @@Chatting:
+    RET
+RUN_MAIN_SCREEN ENDP
