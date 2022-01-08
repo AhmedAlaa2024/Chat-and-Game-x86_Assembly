@@ -22,6 +22,14 @@ STRT_BP_PROMPT DB  'Enter your suggested initial Register value for BP: (4-Digit
 STRT_SP_PROMPT DB  'Enter your suggested initial Register value for SP: (4-Digit max)',13,10,'$'
 ;STRT_REG_PROMPT DB  [STRT_AX_PROMPT], [STRT_BX_PROMPT], [STRT_CX_PROMPT], [STRT_DX_PROMPT], [STRT_DI_PROMPT], [STRT_SI_PROMPT], [STRT_BP_PROMPT], [STRT_SP_PROMPT]
 
+SCREEN_SPLITTER DB 100 dup('='), '$'
+SCREEN_ERASER DB 100 dup(' '), '$'
+MAIN_SCRREN_REVEIVING_OTHER_PLAYER_NAME_MSG DB 'WAITING FOR OTHER PLAYER TO JOIN THE PARTY, PLEASE WAIT...',13,10,'$'
+MAIN_SCRREN__PLAYER_JOINED DB 'ANOTHER PLAYER JOINED THE GAME WITH USERNAME : $'
+MAIN_SCREEN_NOTIFICATION_CHAT_SENT DB 'You Sent A chat Request To $'
+MAIN_SCREEN_NOTIFICATION_GAME_SENT DB 'You Sent A Game Request To $'
+MAIN_SCREEN_NOTIFICATION_CHAT_RECEIVED DB 'You Received A Chat Request From $'
+MAIN_SCREEN_NOTIFICATION_GAME_RECEIVED DB 'You Received A Game Request From $'
 ;===========================================
 STR_TEMP              DB      ?,?,?,?,'$'
 ;===========================================
