@@ -139,3 +139,18 @@ PLAYER_2_O_FLAG_VALUE          DB       0
 ;===========================================
 PLAYER_2_CMD_X_LOCATION        DB       ?
 ;===========================================
+;================================
+;DATA
+;================================
+read_msg db 81 dup('$')
+out_msg db 81 dup('$')
+SPLIT_SCREEN DB 80 DUP ('='), '$'
+CHATTING_NOTIFICATION_1 DB '-To End Chatting with ','$'
+CHATTING_NOTIFICATION_2 DB ' press F3', '$'
+val db ?
+loc_up db 1, 0
+loc_down db 14, 0
+
+CHATSEND EQU 130
+CHATRECIEVE EQU 131
+CHATEXIT EQU 132
