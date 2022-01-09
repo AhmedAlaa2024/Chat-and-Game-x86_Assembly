@@ -53,13 +53,13 @@ DRAW_LINE_V   MACRO X, Y, LENGTH, COLOR
         PUSH DX
         PUSH DI
         ;==========================
-        MOV AH,0CH
-        MOV AL,COLOR
-        MOV CX,X
-        MOV DX,Y
-        MOV DI,0
-        ADD DI,DX
-        ADD DI,LENGTH
+        MOV AH, 0CH
+        MOV AL, COLOR
+        MOV CX, X
+        MOV DX, Y
+        MOV DI, 0
+        ADD DI, DX
+        ADD DI, LENGTH
         LINE:
                 INT 10H
                 INC DX
@@ -92,13 +92,13 @@ DRAW_LINE_H   MACRO X, Y, LENGTH, COLOR
         PUSH DX
         PUSH DI
         ;==========================
-        MOV AH,0CH
-        MOV AL,COLOR
-        MOV CX,X
-        MOV DX,Y
-        MOV DI,0
-        ADD DI,CX
-        ADD DI,LENGTH
+        MOV AH, 0CH
+        MOV AL, COLOR
+        MOV CX, X
+        MOV DX, Y
+        MOV DI, 0
+        ADD DI, CX
+        ADD DI, LENGTH
         LINE:
                 INT 10H
                 INC CX
