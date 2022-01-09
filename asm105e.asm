@@ -351,7 +351,7 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         ISUP:
                 CMP KEY,72 ;UP
                 JNE ISDOWN
-                CMP Y,50
+                CMP Y,150
                 JBE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
                 SUB Y,10 
@@ -359,7 +359,7 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         ISDOWN:
                 CMP KEY,80 ;DOWN
                 JNE NOCHANGE
-                CMP Y,300
+                CMP Y,400
                 JAE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
                 ADD Y,10 
@@ -370,7 +370,7 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
 ENDM DRAW_PLAYER1 
 DRAW_PLAYER2 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
-                CMP KEY,30 ;LEFT
+                CMP KEY,75 ;LEFT
                 JNE ISRIGHT
                 CMP X,0
                 JBE NOCHANGE
@@ -378,7 +378,7 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
                 SUB X,10
                 JMP DRAW        
         ISRIGHT:
-                CMP KEY,32 ;RIGHT
+                CMP KEY,77 ;RIGHT
                 JNE ISUP
                 CMP X,375
                 JAE NOCHANGE
@@ -386,17 +386,17 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
                 ADD X,10
                 JMP DRAW  
         ISUP:
-                CMP KEY,17 ;UP
+                CMP KEY,72 ;UP
                 JNE ISDOWN
-                CMP Y,50
+                CMP Y,150
                 JBE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
                 SUB Y,10 
                 JMP DRAW 
         ISDOWN:
-                CMP KEY,31 ;DOWN
+                CMP KEY,80 ;DOWN
                 JNE NOCHANGE
-                CMP Y,300
+                CMP Y,400
                 JAE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
                 ADD Y,10 
@@ -490,7 +490,7 @@ DRAW_BULLET2 MACRO KEY
         PUSH CX
         PUSH DX
         PUSH SI
-                CMP KEY,28 ;P
+                CMP KEY,57 ;Space
                 JNE CHECKFINISH
                 ;CONSUMEBUFFER
                 CMP BULLET2_MOVING,0
@@ -560,15 +560,60 @@ ENDM DRAW_BULLET2
 MINI_GAME PROC
         CMP GAME_MOVING,1
         JE GAMEISMOVING
+
+        CMP RECIEVE_VALUE,124
+        JNE @@CHECKRANDOM
+
+        PUSH CX
+        MOV SEND_VALUE,124
+        CALL SEND_CHAR
+        mov RECIEVE_VALUE,5
+@@RECIEVE_RAND:
+        CALL RECIEVE_CHAR
+        CMP RECIEVE_VALUE,5
+        JE @@RECIEVE_RAND
+        MOV CX,0
+        MOV CL,RECIEVE_VALUE
+        MOV RANDOM0_4,cx
+        MOV SEND_VALUE,124
+        CALL SEND_CHAR
+        POP CX
+        JMP GAMESTARTEDOUT
+@@CHECKRANDOM:
         CALL GENERATE_RANDOM
         CMP RANDOM0_99,88
         JE GAMENOTMOVING
         RET
 GAMENOTMOVING:
+        MOV SEND_VALUE,124
+        CALL SEND_CHAR
+
+        MOV RECIEVE_VALUE,0
+@@WAIT_TO_SEND:
+        CALL RECIEVE_CHAR
+        CMP RECIEVE_VALUE,124
+        JNE @@WAIT_TO_SEND
+        PUSH CX
+        MOV CX,RANDOM0_4
+        MOV SEND_VALUE,CL
+        CALL SEND_CHAR
+        MOV RECIEVE_VALUE,0
+@@WAIT_TO_START:
+        CALL RECIEVE_CHAR
+        CMP RECIEVE_VALUE,124
+        JNE @@WAIT_TO_START
+        ; MOV CX,0FFFFH
+        ; @@DUMMY2: NOP
+        ; LOOP @@DUMMY2
+        ; MOV CX,0FFFFH
+        ; @@DUMMY3: NOP
+        ; LOOP @@DUMMY3
+        POP CX
+GAMESTARTEDOUT:
         MOV GAME_MOVING,1
         CALL DRAW_TARGET
         MOV BIRD_MOVING,1
-        MOV BIRD_MOVING,1
+        MOV TIME,1
         DRAW_MOIVNG_OBJECT shooter shooter1Background shooterSize P1_Y P1_X
         DRAW_MOIVNG_OBJECT shooter shooter2Background shooterSize P2_Y P2_X
 
@@ -578,6 +623,18 @@ GAMEISMOVING:
         JZ @@BUFF_EMPTY
         MOV AH, 0 ;CONSUME BUFFER
         INT 16h
+        MOV SEND_VALUE,ah
+        CALL SEND_CHAR
+;         mov RECIEVE_VALUE,0
+; @@RECIEVE_KEY:
+;         CALL RECIEVE_CHAR
+;         CMP RECIEVE_VALUE,124
+;         JNE @@RECIEVE_RAND
+        ; PUSH CX
+        ; MOV CX,0FFFFH
+        ; @@DUMMY5: NOP
+        ; LOOP @@DUMMY5
+        ; POP CX
 @@BUFF_EMPTY:
         CMP BIRD_MOVING,0
         JE CONTINUE_P2
@@ -588,6 +645,14 @@ CONTINUE_P1:
 CONTINUE_P2:
         CMP BIRD_MOVING,0
         JE SKIPPING
+        mov RECIEVE_VALUE,0
+        CALL RECIEVE_CHAR
+;         CMP RECIEVE_VALUE,0
+;         JNE @@DONT_AKA
+;         MOV SEND_VALUE,124
+;         CALL SEND_CHAR
+; @@DONT_AKA:
+        MOV AH,RECIEVE_VALUE
         DRAW_PLAYER2 P2_Y P2_X AH
         DRAW_BULLET2 AH
         DRAW_BIRD2
@@ -968,7 +1033,7 @@ GENERATE_RANDOM PROC
         MOV RANDOM0_4,DX
         call    RAND   ; AX is now a random number
         xor     dx, dx
-        mov     cx, 250    
+        mov     cx, 100    
         div     cx        ; here dx contains the remainder - from 0 to 250 OR WHAT EVER I WANT TO TEST AT
         MOV RANDOM0_99,DX
         POP CX
@@ -1703,7 +1768,9 @@ HANDLE_RECIEVE PROC NEAR
     CAN_USE_POWER_UP @@RETURN, 50
     CALL EXECUTE_SIXTH_POWER_UP
     JMP @@RETURN
-    @@WRITE_BUFFER_CMD: 
+    @@WRITE_BUFFER_CMD:
+    CMP RECIEVE_VALUE,124 
+    JE @@RETURN
     CALL WRITE_CMD
     @@RETURN:
     ;CONSUMEBUFFER
@@ -2270,11 +2337,11 @@ PROCESSOR_GAME_MAIN_LOGIC PROC NEAR
     CALL UPDATE_CURRENT_PROCESSOR_REPRESENTATION
     INC BP
 
-;     @@MINI_GAME:
-;     call MINI_GAME    
-;     INC TIME
-;     cmp GAME_MOVING, 1
-;     je @@MINI_GAME
+    @@MINI_GAME:
+    call MINI_GAME    
+    INC TIME
+    cmp GAME_MOVING, 1
+    je @@MINI_GAME
 
     ;TIMER DELAY 
     ;MOV CX,0FFFFH
