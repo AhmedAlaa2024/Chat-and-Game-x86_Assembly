@@ -203,6 +203,9 @@ CHECKEND:
         ;If bird reaches end should end game with draw no one caught the bird
         CMP BIRD1_X,410
         JNE CHECKSPEED
+        ;SEND SIGNAL THAT BIRD STOPPED
+        MOV SEND_VALUE,125
+        CALL SEND_CHAR 
         MOV BIRD_MOVING,0
         ;If both birds not moving should end game
         CALL MINI_GAME_MOVING
@@ -253,10 +256,13 @@ NOCHANGE:
         POP AX
 ENDM DRAW_BIRD1
 DRAW_BIRD2  MACRO 
-        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND,CHECKBULLET2
+        LOCAL NOCHANGE,CHECKDOWN,SHIFT,CHECKSPEED,CHECKEND,CHECKBULLET2,BIRD_ESCAPED
         PUSH AX
         PUSH CX
         PUSH DX
+        ;COMPARE RECIEVE WITH 125 MEANS BIRD STOPPED
+        CMP RECIEVE_VALUE,125 
+        JE BIRD_ESCAPED
         ;If bird is not moving means game didnt start so no change should happen
         CMP BIRD_MOVING,0
         JNE CHECKEND
@@ -265,6 +271,7 @@ CHECKEND:
         ;If bird reaches end should end game with draw no one caught the bird
         CMP BIRD2_X,10
         JNE CHECKSPEED
+BIRD_ESCAPED:
         MOV BIRD_MOVING,0
         ;If both birds not moving should end game
         CALL MINI_GAME_MOVING
@@ -272,7 +279,10 @@ CHECKEND:
         ;draw all the previous background and reset position
         call DRAW_BIRDUP2_BACKGROUND
         CALL DRAW_BIRDDOWN2_BACKGROUND
+        call DRAW_BIRDUP1_BACKGROUND
+        CALL DRAW_BIRDDOWN1_BACKGROUND
         call DRAW_PLAYER2_BACKGROUND
+        call DRAW_PLAYER1_BACKGROUND
         mov Bird2_X,360
         mov Bird1_X,760
         cmp BULLET1_MOVING,1
@@ -337,7 +347,7 @@ DRAW_PLAYER1 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
                 CMP KEY,75 ;LEFT
                 JNE ISRIGHT
-                CMP X,400
+                CMP X,420
                 JBE NOCHANGE
                 CALL DRAW_PLAYER1_BACKGROUND
                 SUB X,10
@@ -374,7 +384,7 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         LOCAL ISRIGHT,NOCHANGE,DRAW,ISUP,ISDOWN
                 CMP KEY,75 ;LEFT
                 JNE ISRIGHT
-                CMP X,0
+                CMP X,20
                 JBE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
                 SUB X,10
@@ -382,7 +392,7 @@ DRAW_PLAYER2 MACRO Y , X ,KEY
         ISRIGHT:
                 CMP KEY,77 ;RIGHT
                 JNE ISUP
-                CMP X,375
+                CMP X,37
                 JAE NOCHANGE
                 CALL DRAW_PLAYER2_BACKGROUND
                 ADD X,10
@@ -460,6 +470,8 @@ DRAW_BULLET1 MACRO KEY
                 CALL MINI_GAME_MOVING
                 MOV Bird1_X,760
                 MOV Bird2_X,360
+                MOV SEND_VALUE,123
+                CALL SEND_CHAR
                 cmp BULLET2_MOVING,1
                 jne UNHIT
                 call DRAW_BULLET2_BACKGROUND
@@ -487,11 +499,14 @@ DRAW_BULLET1 MACRO KEY
         POP AX
 ENDM DRAW_BULLET1
 DRAW_BULLET2 MACRO KEY
-        LOCAL NOCHANGE,CHECKFINISH,CHECKSPACE,CHECKMOVING,UNHIT,CHECKBULLETMOVING
+        LOCAL NOCHANGE,CHECKFINISH,CHECKSPACE,CHECKMOVING,UNHIT,CHECKBULLETMOVING,DONT_DRAW
         PUSH AX
         PUSH CX
         PUSH DX
         PUSH SI
+                ;IF PLAYER 0NE WON BUT DUE TO SERVER CONNECTION DIDNT SYNC MAKE HIM WIN HERE (LAG)
+                CMP KEY,123
+                JE ISHIT
                 CMP KEY,57 ;Space
                 JNE CHECKFINISH
                 ;CONSUMEBUFFER
@@ -518,6 +533,13 @@ DRAW_BULLET2 MACRO KEY
                 ADD SI,15
                 CMP SI,Bird2_X
                 JBE UNHIT
+        ISHIT:
+                MOV RECIEVE_VALUE,0
+                CMP  BULLET2_MOVING,0
+                JE DONT_DRAW
+                CALL DRAW_BULLET2_BACKGROUND
+DONT_DRAW:
+                MOV BULLET2_MOVING,0
                 CALL END_MINI_GAME_P2
                 call DRAW_BIRDUP2_BACKGROUND
                 CALL DRAW_BIRDDOWN2_BACKGROUND
@@ -1774,7 +1796,11 @@ HANDLE_RECIEVE PROC NEAR
     CALL EXECUTE_SIXTH_POWER_UP
     JMP @@RETURN
     @@WRITE_BUFFER_CMD:
+    CMP RECIEVE_VALUE,123 
+    JE @@RETURN
     CMP RECIEVE_VALUE,124 
+    JE @@RETURN
+    CMP RECIEVE_VALUE,125 
     JE @@RETURN
     CALL WRITE_CMD
     @@RETURN:
@@ -2400,6 +2426,9 @@ PROCESSOR_GAME_MAIN_LOGIC PROC NEAR
 
     CALL UPDATE_CURRENT_PROCESSOR_REPRESENTATION
     INC BP
+
+        ;Uncommnet the bird for testing
+
 
 ;     @@MINI_GAME:
 ;     call MINI_GAME    
