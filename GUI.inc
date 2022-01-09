@@ -96,6 +96,7 @@ DRAW_LINE_H   MACRO X, Y, LENGTH, COLOR
         MOV AL,COLOR
         MOV CX,X
         MOV DX,Y
+        MOV DI,0
         ADD DI,CX
         ADD DI,LENGTH
         LINE:
