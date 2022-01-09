@@ -2,7 +2,7 @@
 MAIN_SCREEN_MSG1 DB 'To start chatting press F1$'
 MAIN_SCREEN_MSG2 DB 'To start the game press F2$'
 MAIN_SCREEN_MSG3 DB 'To end the program press ESC$'
-NEW_GAME_SCREEN_MSG DB 'Please WAit .......... $'
+NEW_GAME_SCREEN_MSG DB 'Please Wait .......... $'
 FINAL_SCORE_MSG DB ' Has Score Of = $'
 NEW_GAME_SCREEN_LEVEL_ONE DB 'The Game Level Was Chosen To Be 1 $'
 NEW_GAME_SCREEN_LEVEL_TWO DB 'The Game Level Was Chosen To Be 2 $'
@@ -87,9 +87,6 @@ PLAYER_1_Z_FLAG_LABEL          DB       'ZF: ', '$'
 PLAYER_1_S_FLAG_LABEL          DB       'SF: ', '$'
 PLAYER_1_O_FLAG_LABEL          DB       'OF: ', '$'
 ;===========================================
-MESSAGE_1             DB      'Have the project been finished?', '$'
-MESSAGE_2             DB      'Yeah! We did it, Alaa!!!', '$'
-;===========================================
 PLAYER_1_SCORE_VALUE           DW      0000
 PLAYER_1_TIMER_VALUE           DW      0000
 ;===========================================
@@ -143,6 +140,7 @@ PLAYER_2_O_FLAG_VALUE          DB       0
 ;===========================================
 PLAYER_2_CMD_X_LOCATION        DB       ?
 ;===========================================
+
 ;================================
 ;DATA
 ;================================
@@ -155,6 +153,12 @@ val db ?
 loc_up db 1, 0
 loc_down db 14, 0
 
+inline_base_x_loc equ 16
+inline_x_loc DB inline_base_x_loc
+INLINE_BUFF DB 60, 0
+INLINE_MSG_1 DB 61 dup('$')
+;INLINE_MSG_2 DB 61 dup('$')
 CHATSEND EQU 130
 CHATRECIEVE EQU 131
 CHATEXIT EQU 132
+CHATEND EQU 133
