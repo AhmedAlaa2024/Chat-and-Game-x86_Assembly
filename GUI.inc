@@ -566,10 +566,10 @@ ENDP    PLAYER_1_UPDATE_BIRD_SCORE
 ;===========================================================================================
 DRAW_PLAYER_1 PROC
         ; Draw Power Ups
-        DRAW_BOX 407, 500, 325, 45, BLACK
+        DRAW_BOX 407, 500, 325+64, 45, BLACK
 
         ; Draw Command Box
-        DRAW_BOX 407, 450, 325, 45, BLACK
+        DRAW_BOX 407, 450, 325+64, 45, BLACK
         PRINT_STRING 53, 29, NAME_1, GREEN
         MOV PLAYER_1_CMD_X_LOCATION, 54
         MOV BL, P1_USERNAME_SIZE
@@ -577,13 +577,13 @@ DRAW_PLAYER_1 PROC
 
 
         ; Draw Register box
-        DRAW_BOX 407, 90, 60, 340, BLACK
+        DRAW_BOX 407, 90, 60+64, 340, BLACK
 
         ; Draw Memory and Flags box 1
-        DRAW_BOX 540, 90, 60, 340, BLACK
+        DRAW_BOX 540, 90, 60+64, 340, BLACK
 
         ; Draw Memory and Flags box 2
-        DRAW_BOX 670, 90, 60, 340, BLACK
+        DRAW_BOX 670, 90, 60+64, 340, BLACK
 
         MOV CX,8
         MOV BP,160
@@ -592,7 +592,7 @@ DRAW_PLAYER_1 PROC
         PLAYER_1_LINES:
                         MOV AX,3
                         PLAYER_1_THICKNESS_H:
-                                                DRAW_LINE_H 407, BP, 320, LIGHT_WHITE
+                                                DRAW_LINE_H 407, BP, 320+64, LIGHT_WHITE
                                                 INC BP
                                                 DEC AX
                                                 JNZ PLAYER_1_THICKNESS_H
@@ -625,17 +625,17 @@ DRAW_PLAYER_1 PROC
                                 LOOP PLAYER_1_THICKNESS_V_1_2
 
         ; Draw score box
-        DRAW_LINE_H 407, 135, 320, LIGHT_WHITE
-        DRAW_LINE_H 407, 136, 320, LIGHT_WHITE
-        DRAW_LINE_H 407, 137, 320, LIGHT_WHITE
+        DRAW_LINE_H 407, 135, 320+64, LIGHT_WHITE
+        DRAW_LINE_H 407, 136, 320+64, LIGHT_WHITE
+        DRAW_LINE_H 407, 137, 320+64, LIGHT_WHITE
 
-        DRAW_LINE_H 407, 87, 60, RED
-        DRAW_LINE_H 407, 88, 60, RED
-        DRAW_LINE_H 407, 89, 60, RED
+        DRAW_LINE_H 407, 87, 60+64, RED
+        DRAW_LINE_H 407, 88, 60+64, RED
+        DRAW_LINE_H 407, 89, 60+64, RED
 
-        DRAW_LINE_H 407, 132, 60, RED
-        DRAW_LINE_H 407, 133, 60, RED
-        DRAW_LINE_H 407, 134, 60, RED
+        DRAW_LINE_H 407, 132, 60+64, RED
+        DRAW_LINE_H 407, 133, 60+64, RED
+        DRAW_LINE_H 407, 134, 60+64, RED
 
         DRAW_LINE_V 405, 87, 48, RED
         DRAW_LINE_V 406, 87, 48, RED
@@ -861,23 +861,23 @@ ENDP    PLAYER_2_UPDATE_BIRD_SCORE
 ;===========================================================================================
 DRAW_PLAYER_2 PROC
         ; Draw Power Ups
-        DRAW_BOX 10, 500, 325, 45, BLACK
+        DRAW_BOX 10-2, 500, 325+64, 45, BLACK
 
         ; Draw Command Box
-        DRAW_BOX 10, 450, 325, 45, BLACK
+        DRAW_BOX 10, 450, 325+64, 45, BLACK
         PRINT_STRING 4, 29, NAME_2, GREEN
         MOV PLAYER_2_CMD_X_LOCATION, 5
         MOV BL, P2_USERNAME_SIZE
         ADD PLAYER_2_CMD_X_LOCATION, BL
 
         ; Draw Register box
-        DRAW_BOX 10, 90, 60, 340, BLACK
+        DRAW_BOX 10, 90, 60+64, 340, BLACK
 
         ; Draw Memory and Flags box 1
-        DRAW_BOX 143, 90, 60, 340, BLACK
+        DRAW_BOX 143, 90, 60+64, 340, BLACK
 
         ; Draw Memory and Flags box 2
-        DRAW_BOX 273, 90, 60, 340, BLACK
+        DRAW_BOX 273, 90, 60+64, 340, BLACK
 
         MOV CX,8
         MOV BP,160
@@ -886,7 +886,7 @@ DRAW_PLAYER_2 PROC
         PLAYER_2_LINES:
                         MOV AX,3
                         PLAYER_2_THICKNESS_H:
-                                                DRAW_LINE_H 10, BP, 320, LIGHT_WHITE
+                                                DRAW_LINE_H 10, BP, 320+64, LIGHT_WHITE
                                                 INC BP
                                                 DEC AX
                                                 JNZ PLAYER_2_THICKNESS_H
@@ -919,17 +919,17 @@ DRAW_PLAYER_2 PROC
                                 LOOP PLAYER_2_THICKNESS_V_1_2
 
         ; Draw score box
-        DRAW_LINE_H 10, 135, 320, LIGHT_WHITE
-        DRAW_LINE_H 10, 136, 320, LIGHT_WHITE
-        DRAW_LINE_H 10, 137, 320, LIGHT_WHITE
+        DRAW_LINE_H 10, 135, 320+64, LIGHT_WHITE
+        DRAW_LINE_H 10, 136, 320+64, LIGHT_WHITE
+        DRAW_LINE_H 10, 137, 320+64, LIGHT_WHITE
 
-        DRAW_LINE_H 10, 87, 60, RED
-        DRAW_LINE_H 10, 88, 60, RED
-        DRAW_LINE_H 10, 89, 60, RED
+        DRAW_LINE_H 10, 87, 60+64, RED
+        DRAW_LINE_H 10, 88, 60+64, RED
+        DRAW_LINE_H 10, 89, 60+64, RED
 
-        DRAW_LINE_H 10, 132, 60, RED
-        DRAW_LINE_H 10, 133, 60, RED
-        DRAW_LINE_H 10, 134, 60, RED
+        DRAW_LINE_H 10, 132, 60+64, RED
+        DRAW_LINE_H 10, 133, 60+64, RED
+        DRAW_LINE_H 10, 134, 60+64, RED
 
         DRAW_LINE_V 8, 87, 48, RED
         DRAW_LINE_V 9, 87, 48, RED
